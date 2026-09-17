@@ -6,7 +6,7 @@ plugins {
 android {
     namespace = "com.kitchino.app"
     compileSdk {
-        version = release(36)
+        version = release(37)
     }
 
     defaultConfig {
