@@ -1,6 +1,7 @@
 package com.kitchino.app.dishbatch.ui
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.kitchino.app.dishbatch.data.DecisionType
 import com.kitchino.app.dishbatch.data.DiscountDecisionDao
@@ -40,5 +41,15 @@ class DishBatchViewModel (
             DecisionType.DISCOUNT -> batchDao.updateExistingBatch(item.dishBatchEntity.copy(status = Status.WITH_SALE))
             DecisionType.NO_ACTION -> {}
         }
+    }
+}
+
+class DishBatchViewModelFactory(
+    private val batchDao: DishBatchDao,
+    private val decisionDao: DiscountDecisionDao
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class <T>) : T {
+        @Suppress("UNCHECKED_CAST")
+        return DishBatchViewModel(batchDao, decisionDao) as T
     }
 }
