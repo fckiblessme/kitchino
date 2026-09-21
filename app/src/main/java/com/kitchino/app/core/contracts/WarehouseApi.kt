@@ -8,7 +8,7 @@ interface WarehouseApi  {
     suspend fun listRecipes(): List<RecipeInfo>
 }
 
-// Результат спсиания ингредиентов
+// Результат списания ингредиентов
 sealed interface ConsumeResult{
     // Успешное списание
     data object Success: ConsumeResult
@@ -22,7 +22,7 @@ sealed interface ConsumeResult{
 
 // Информация о рецепте для отображения
 data class RecipeInfo(
-    val id:Long,
+    val id: Long,
     val dishName:String
 )
 // Описание недостающего ингредиента
