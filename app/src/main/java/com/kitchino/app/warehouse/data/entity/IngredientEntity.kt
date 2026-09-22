@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 @Entity("ingredient")
 data class IngredientEntity (
     // Уникальный номер ингредиента
-    @PrimaryKey(autoGenerate = true) val idIgredient: Long =0,
+    @PrimaryKey(autoGenerate = true) val idIngredient: Long =0,
     // Название продукта
     val name:String,
     // Единица измерения

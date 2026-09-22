@@ -13,7 +13,7 @@ object Forecast {
         val receptDays = dailyConsumption.takeLast(windowSize)
         return receptDays.average()
     }
-    // Рассчет на сколько дней хватит текущих запасов
+    // Расчет на сколько дней хватит текущих запасов
     fun calculateDaysUntilEmpty(
         currentStock: Double,
         averageDailyConsumption: Double)
@@ -37,5 +37,46 @@ object Forecast {
             return false
         }
         return daysUntilEmpty<leadTimeDays
+    }
+
+    // Проверка сколько дней осталось до истечения срока годности партии
+    fun calculateDaysUntilExpiry(
+        expiryDateMillis: Long,
+        currentTimeMillis: Long
+    ): Double {
+        val millisecondsPerDay = 86_400_000.0
+        val difference = expiryDateMillis - currentTimeMillis
+        return difference / millisecondsPerDay
+    }
+
+    // Расчет сколько дней продукт можно использовать
+    fun calculateUsableDays(
+        daysUntilEmpty: Double?,
+        daysUntilExpiry: Double?
+    ): Double? {
+        if (daysUntilEmpty == null && daysUntilExpiry == null) {
+            return null
+        }
+        if (daysUntilEmpty == null) {
+            return daysUntilExpiry
+        }
+        if (daysUntilExpiry == null) {
+            return daysUntilEmpty
+        }
+        return minOf(daysUntilEmpty, daysUntilExpiry)
+    }
+
+    // Срочно ли надо использовать продукт
+    fun shouldUseUrgently(
+        daysUntilEmpty: Double?,
+        daysUntilExpiry: Double?
+    ): Boolean {
+        if (daysUntilExpiry == null) {
+            return false
+        }
+        if (daysUntilEmpty == null) {
+            return daysUntilExpiry < 3.0
+        }
+        return daysUntilExpiry < daysUntilEmpty
     }
 }
