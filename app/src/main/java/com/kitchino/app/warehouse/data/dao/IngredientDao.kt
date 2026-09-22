@@ -15,11 +15,11 @@ interface IngredientDao {
     fun getAllIngredients(): Flow<List<IngredientEntity>>
 
     // Поиск ингредиента по номеру
-    @Query("select * from ingredient where idIgredient = :ingredientId ")
+    @Query("select * from ingredient where idIngredient = :ingredientId ")
     suspend fun getIngredientById(ingredientId:Long): IngredientEntity?
 
     // Поиск ингредиентов по списку номеров
-    @Query("select * from ingredient where idIgredient in (:ids)")
+    @Query("select * from ingredient where idIngredient in (:ids)")
     suspend fun getIngredientsByIds (ids: List<Long>): List<IngredientEntity>
 
     // Добавление нового ингредиента
