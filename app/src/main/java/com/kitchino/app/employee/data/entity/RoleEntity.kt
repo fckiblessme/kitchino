@@ -1,6 +1,6 @@
 package com.kitchino.app.employee.data.entity
 
-enum class RoleEntity {
+enum class Role{
     COOK,
     CASHIER,
     MANAGER
