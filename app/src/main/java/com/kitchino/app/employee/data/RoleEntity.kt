@@ -1,4 +1,4 @@
-package com.kitchino.app.employee.data.entity
+package com.kitchino.app.employee.data
 
 enum class Role{
     COOK,

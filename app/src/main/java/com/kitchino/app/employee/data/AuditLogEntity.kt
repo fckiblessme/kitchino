@@ -1,8 +1,9 @@
-package com.kitchino.app.employee.data.entity
+package com.kitchino.app.employee.data
+
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity (tableName = "audit_log")
+@Entity(tableName = "audit_log")
 class AuditLogEntity (
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,

@@ -1,4 +1,5 @@
-package com.kitchino.app.employee.data.entity
+package com.kitchino.app.employee.data
+
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
