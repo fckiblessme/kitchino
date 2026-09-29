@@ -10,7 +10,7 @@ interface TrainingDao {
     @Insert
     suspend fun insertCard(card: TrainingCardEntity) : Long
 
-    @Query("Select * from cards where recipeId = :recipeId order by orderIndex ")
+    @Query("Select * from cards where recipeId = :recipeId order by orderId ")
     suspend fun  getRecipeCard(recipeId : Long) :List<TrainingCardEntity>
 
     @Insert
