@@ -1,4 +1,4 @@
-package com.kitchino.app.dishbatch.data
+package com.kitchino.app.employee.data
 
 import androidx.room.Dao
 import androidx.room.Insert
