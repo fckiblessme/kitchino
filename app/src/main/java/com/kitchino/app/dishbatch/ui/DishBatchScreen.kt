@@ -8,13 +8,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.kitchino.app.dishbatch.data.DecisionType
+import com.kitchino.app.ui.theme.LightGreen
+import com.kitchino.app.ui.theme.LightOrange
+import com.kitchino.app.ui.theme.LightRed
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -34,14 +41,20 @@ fun DishBatchScreen(viewModel: DishBatchViewModel){
     LazyColumn() {
         items(batches) {
             item ->
-            Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+            val (backgroundColor, badgeText) = when (item.discountDecision.decisionType) {
+                DecisionType.NO_ACTION -> LightGreen to "Без действия"
+                DecisionType.DISCOUNT -> LightOrange to "Скидка ${item.discountDecision.discountPercent?.toInt()}%"
+                DecisionType.WRITE_OFF -> LightRed to "Списание"
+            }
+            Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), colors = CardDefaults.cardColors(containerColor = backgroundColor)) {
                 Column(modifier = Modifier.padding(12.dp)){
                     Text("Партия #${item.dishBatchEntity.idDishBatch}")
+                    Text(badgeText)
                     Text("Блюдо ID: ${item.dishBatchEntity.idDish}, сотрудник ID: ${item.dishBatchEntity.idEmployee}")
                     Text("Количество: ${item.dishBatchEntity.quantity}")
                     Text("Изготовлено: ${formatTime(item.dishBatchEntity.madeAt)}")
                     Text("Истекает: ${formatTime(item.dishBatchEntity.expiresAt)}")
-                    Text("Рекомендация: ${item.discountDecision.decisionType}, ${item.discountDecision.discountReason}")
+                    Text("Рекомендация:  ${item.discountDecision.discountReason}")
                 }
             }
         }
