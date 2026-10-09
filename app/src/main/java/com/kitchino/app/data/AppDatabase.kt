@@ -22,9 +22,18 @@ import com.kitchino.app.dishbatch.data.DiscountDecisionEntity
 import com.kitchino.app.dishbatch.data.DishBatchDao
 import com.kitchino.app.dishbatch.data.DishBatchEntity
 
+import com.kitchino.app.employee.data.AuditLogEntity
+import com.kitchino.app.employee.data.EmployeeEntity
+import com.kitchino.app.employee.data.TrainingCardEntity
+import com.kitchino.app.employee.data.TrainingProgressEntity
+import com.kitchino.app.employee.data.EmployeeDao
+import com.kitchino.app.employee.data.TrainingDao
+import com.kitchino.app.employee.data.AuditLogDao
 
 
-@Database(entities = [DishBatchEntity::class, DiscountDecisionEntity::class,  IngredientEntity::class, IngredientBatchEntity::class, RecipeEntity::class, RecipeIngredientEntity::class,ConsumptionLogEntity::class], version = 1)
+
+
+@Database(entities = [DishBatchEntity::class, DiscountDecisionEntity::class,  IngredientEntity::class, IngredientBatchEntity::class, RecipeEntity::class, RecipeIngredientEntity::class,ConsumptionLogEntity::class, AuditLogEntity::class, EmployeeEntity::class, TrainingCardEntity::class, TrainingProgressEntity::class], version = 1)
 @TypeConverters(Converters::class)
 abstract class AppDatabase  : RoomDatabase(){
     abstract fun returnDishBatchDao() : DishBatchDao
@@ -34,6 +43,10 @@ abstract class AppDatabase  : RoomDatabase(){
     abstract fun returnIngredientBatchDao(): IngredientBatchDao
     abstract fun returnRecipeDao(): RecipeDao
     abstract fun returnConsumptionLogDao(): ConsumptionLogDao
+    abstract fun returnEmployeeDao(): EmployeeDao
+    abstract fun returnTrainingDao(): TrainingDao
+    abstract fun returnAuditLogDao(): AuditLogDao
+
 
     companion object{
         private var instance: AppDatabase? = null
