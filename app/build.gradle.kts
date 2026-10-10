@@ -22,6 +22,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Отчет покрытия модульных тестов: app/build/reports/coverage/test/debug
+            enableUnitTestCoverage = true
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -66,4 +70,11 @@ dependencies {
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation("androidx.navigation:navigation-compose:2.8.4")
+}
+
+// Имена и результат каждой проверки видны в журнале локального запуска и в CI
+tasks.withType<Test>().configureEach {
+    testLogging {
+        events("passed", "failed", "skipped")
+    }
 }
