@@ -23,6 +23,8 @@ import com.kitchino.app.dishbatch.data.DiscountDecisionDao
 import com.kitchino.app.dishbatch.data.DiscountDecisionEntity
 import com.kitchino.app.dishbatch.data.DishBatchDao
 import com.kitchino.app.dishbatch.data.DishBatchEntity
+import com.kitchino.app.dishbatch.data.SalesLogDao
+import com.kitchino.app.dishbatch.data.SalesLogEntity
 
 import com.kitchino.app.employee.data.AuditLogEntity
 import com.kitchino.app.employee.data.EmployeeEntity
@@ -51,10 +53,17 @@ val MIGRATION_1_2 = object : Migration(1,2) {
     }
 }
 
+val MIGRATION_2_3 = object : Migration(2, 3){
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS `sales_log` (`idSale` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `idDish` INTEGER NOT NULL, `quantity` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_sales_log_idDish` ON `sales_log` (`idDish`)")
+    }
+}
+
 @Database(entities = [DishBatchEntity::class, DiscountDecisionEntity::class,
     IngredientEntity::class, IngredientBatchEntity::class, RecipeEntity::class,
     RecipeIngredientEntity::class,ConsumptionLogEntity::class, AuditLogEntity::class,
-    EmployeeEntity::class, TrainingCardEntity::class, TrainingProgressEntity::class], version = 2)
+    EmployeeEntity::class, TrainingCardEntity::class, TrainingProgressEntity::class, SalesLogEntity::class], version = 3)
 @TypeConverters(Converters::class)
 abstract class AppDatabase  : RoomDatabase(){
     abstract fun returnDishBatchDao() : DishBatchDao
@@ -67,6 +76,7 @@ abstract class AppDatabase  : RoomDatabase(){
     abstract fun returnEmployeeDao(): EmployeeDao
     abstract fun returnTrainingDao(): TrainingDao
     abstract fun returnAuditLogDao(): AuditLogDao
+    abstract fun returnSalesLogDao(): SalesLogDao
 
 
     companion object{
@@ -79,7 +89,7 @@ abstract class AppDatabase  : RoomDatabase(){
                         context,
                         AppDatabase::class.java,
                         "app_database"
-                    ).addMigrations(MIGRATION_1_2)
+                    ).addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                         .build()
                 }
                 return instance!!
