@@ -4,23 +4,36 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.kitchino.app.dishbatch.data.DecisionType
@@ -51,12 +64,13 @@ fun DishBatchScreen(viewModel: DishBatchViewModel) {
     val batches by viewModel.activeBatchesWithDecisions.collectAsState()
     DishBatchContent(
         batches = batches,
-        onApply = { item -> viewModel.applyDecision(item) }
+        onApply = { item -> viewModel.applyDecision(item) },
+        onSell = {item, qty -> viewModel.recordSale(item, qty)}
     )
 }
 
 @Composable
-fun DishBatchContent(batches: List<BatchUI>, onApply: (BatchUI) -> Unit) {
+fun DishBatchContent(batches: List<BatchUI>, onApply: (BatchUI) -> Unit, onSell: (BatchUI, Int) ->Unit) {
     if (batches.isEmpty()) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -76,14 +90,15 @@ fun DishBatchContent(batches: List<BatchUI>, onApply: (BatchUI) -> Unit) {
         items(batches) { item ->
             DishBatchCard(
                 item = item,
-                onApply = { onApply(item) }
+                onApply = { onApply(item) },
+                onSell = { qty -> onSell(item, qty)}
             )
         }
     }
 }
 
 @Composable
-private fun DishBatchCard(item: BatchUI, onApply: () -> Unit) {
+private fun DishBatchCard(item: BatchUI, onApply: () -> Unit, onSell: (Int) -> Unit) {
     val (backgroundColor, badgeText) = when (item.discountDecision.decisionType) {
         DecisionType.NO_ACTION -> LightGreen to "Без действия"
         DecisionType.DISCOUNT -> LightRed to "Скидка ${item.discountDecision.discountPercent?.toInt()}%"
@@ -119,10 +134,74 @@ private fun DishBatchCard(item: BatchUI, onApply: () -> Unit) {
             ) {
                 Text("Применить")
             }
+
+            var showDialog by remember { mutableStateOf(false) }
+            Button(
+                onClick = {showDialog = true },
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                shape = ButtonCorner,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = DishButtonColor,
+                    contentColor = Color.White
+                )
+            ) {
+                Text("Продать")
+            }
+
+            if(showDialog) {
+                SellDialog(
+                    item = item,
+                    onConfirm = onSell,
+                    onDismiss = {showDialog = false}
+                )
+            }
         }
     }
 }
 
+@Composable
+private fun SellDialog(
+    item: BatchUI,
+    onConfirm: (Int) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var quantityText by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Продажа", modifier = Modifier.weight(1f))
+                IconButton(onClick = onDismiss) {
+                    Icon(Icons.Filled.Close, contentDescription = "Закрыть")
+                }
+            }
+        },
+        text = {
+            Column {
+                Text("Блюдо ID: ${item.dishBatchEntity.idDish}")
+                OutlinedTextField(
+                    value = quantityText,
+                    onValueChange = { quantityText = it },
+                    label = { Text("Количество") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                onConfirm(quantityText.toIntOrNull() ?: 0)
+                onDismiss()
+            }) {
+                Text("Продать")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Отмена")
+            }
+        }
+    )
+}
 fun formatTime(millis: Long): String {
     val formatterer = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
     return formatterer.format(Date(millis))
@@ -157,7 +236,8 @@ private fun DishBatchContentPreview() {
                 sampleBatch(2, DecisionType.DISCOUNT, 20.0, "Менее 50% от срока жизни блюда"),
                 sampleBatch(3, DecisionType.WRITE_OFF, null, "Менее 5% от срока жизни блюда")
             ),
-            onApply = {}
+            onApply = {},
+            onSell = { _, _ ->}
         )
     }
 }
@@ -166,6 +246,7 @@ private fun DishBatchContentPreview() {
 @Composable
 private fun DishBatchEmptyPreview() {
     KitchinoTheme {
-        DishBatchContent(batches = emptyList(), onApply = {})
+        DishBatchContent(batches = emptyList(), onApply = {},
+            onSell = {_, _ ->})
     }
 }

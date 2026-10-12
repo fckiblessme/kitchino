@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
     private val database by lazy { AppDatabase.getDatabase(this) }
     private val dishBatchViewModel: DishBatchViewModel by viewModels {
-        DishBatchViewModelFactory(database.returnDishBatchDao(), database.returnDiscountDecisionDao())
+        DishBatchViewModelFactory(database.returnDishBatchDao(), database.returnDiscountDecisionDao(), database.returnSalesLogDao())
     }
     @Suppress("UNUSED_PARAMETER")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,7 +45,6 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             KitchinoTheme {
-
                 Scaffold(modifier = Modifier.fillMaxSize()) { _ ->
                     DishBatchScreen(viewModel = dishBatchViewModel)
                 }
