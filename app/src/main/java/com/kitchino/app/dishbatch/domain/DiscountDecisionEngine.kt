@@ -34,4 +34,33 @@ object DiscountDecisionEngine {
 
         }
     }
+
+    fun recommendActionWithSalesVelocity(
+        dishBatchEntity: DishBatchEntity,
+        currentTime: Long,
+        portionsPerHour: Double?
+    ) : DiscountDecision {
+        val base = recommendAction(dishBatchEntity, currentTime)
+        val hoursToSellOut = SalesVelocity.calculateHoursToSellOut(
+            dishBatchEntity.quantity, portionsPerHour
+        )
+        if (hoursToSellOut == null) return base
+        val hoursUntilExpiry = (dishBatchEntity.expiresAt - currentTime) / 3_600_000.0
+        return if (hoursToSellOut > hoursUntilExpiry){
+            when (base.decisionType){
+                DecisionType.NO_ACTION -> DiscountDecision(DecisionType.DISCOUNT, 20.0, "")
+                DecisionType.DISCOUNT -> {
+                    if (base.discountPercent == 50.0){
+                        base
+                    }
+                    else {
+                        DiscountDecision(DecisionType.DISCOUNT, 50.0, "")
+                    }
+                }
+                DecisionType.WRITE_OFF -> base
+            }
+        } else {
+            base
+        }
+    }
 }
