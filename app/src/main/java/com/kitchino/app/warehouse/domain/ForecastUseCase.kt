@@ -38,11 +38,22 @@ class ForecastUseCase(
         val since = System.currentTimeMillis() - HISTORY_WINDOW_DAYS * MILLIS_PER_DAY
         val daily = repository.getDailyConsumptionSince(ingredientId, since)
 
+        // От первого списания по ингредиенту до сегодня, не более 30 дней и не менее одного
+        val firstConsumptionDay =
+            repository.getDailyConsumption(ingredientId).firstOrNull()?.dayStartMillis
+        val observationDays = if (firstConsumptionDay == null) {
+            0
+        } else {
+            val daysSinceFirst =
+                ((System.currentTimeMillis() - firstConsumptionDay) / MILLIS_PER_DAY).toInt() + 1
+            minOf(HISTORY_WINDOW_DAYS, maxOf(1, daysSinceFirst))
+        }
+
         // Средний дневной расход
         val dailyAmounts = daily.map { it.totalAmount }
         val averageDailyConsumption = Forecast.calculateAverageDailyConsumption(
             dailyAmounts,
-            HISTORY_WINDOW_DAYS
+            observationDays
         )
 
         // Хватит на N дней

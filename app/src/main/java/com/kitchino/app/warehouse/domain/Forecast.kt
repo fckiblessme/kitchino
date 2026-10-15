@@ -5,13 +5,13 @@ object Forecast {
     //  Вычисление среднего арифметического по последним дням
     fun calculateAverageDailyConsumption(
         dailyConsumption: List<Double>,
-        windowSize:Int
-    ):Double{
-        if(dailyConsumption.isEmpty()){
+        observationDays: Int
+    ): Double {
+        if (dailyConsumption.isEmpty()) {
             return 0.0
         }
-        val receptDays = dailyConsumption.takeLast(windowSize)
-        return receptDays.average()
+        require(observationDays >= 1) { "Некорректное число дней >= 1" }
+        return dailyConsumption.sum() / observationDays
     }
     // Расчет на сколько дней хватит текущих запасов
     fun calculateDaysUntilEmpty(
