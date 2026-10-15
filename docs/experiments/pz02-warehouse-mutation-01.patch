@@ -1,0 +1,13 @@
+diff --git a/app/src/main/java/com/kitchino/app/warehouse/domain/Forecast.kt b/app/src/main/java/com/kitchino/app/warehouse/domain/Forecast.kt
+index e288ed7..fda816d 100644
+--- a/app/src/main/java/com/kitchino/app/warehouse/domain/Forecast.kt
++++ b/app/src/main/java/com/kitchino/app/warehouse/domain/Forecast.kt
+@@ -36,7 +36,7 @@ object Forecast {
+         if (daysUntilEmpty == null){
+             return false
+         }
+-        return daysUntilEmpty<leadTimeDays
++        return daysUntilEmpty<=leadTimeDays
+     }
+ 
+     // Проверка сколько дней осталось до истечения срока годности партии
