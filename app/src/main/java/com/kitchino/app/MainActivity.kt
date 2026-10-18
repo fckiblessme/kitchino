@@ -28,7 +28,8 @@ class MainActivity : ComponentActivity() {
     @Suppress("UNUSED_PARAMETER")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("Kitchino", "Запуск: версия ${BuildConfig.VERSION_NAME} (${BuildConfig.BUILD_TYPE}), SHA ${BuildConfig.GIT_SHA}")
+        Log.d("Kitchino", "Запуск: версия ${BuildConfig.VERSION_NAME} " +
+                "(${BuildConfig.BUILD_TYPE}), SHA ${BuildConfig.GIT_SHA}")
         enableEdgeToEdge()
         lifecycleScope.launch {
             database.returnDishBatchDao().insertNewBatch(
