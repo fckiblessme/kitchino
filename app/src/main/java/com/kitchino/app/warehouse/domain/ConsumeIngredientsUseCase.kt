@@ -7,6 +7,8 @@ import com.kitchino.app.data.AppDatabase
 import com.kitchino.app.warehouse.data.entity.ConsumptionLogEntity
 import com.kitchino.app.warehouse.data.entity.RecipeIngredientEntity
 import kotlin.collections.isNotEmpty
+import android.util.Log
+import com.kitchino.app.BuildConfig
 
 class ConsumeIngredientsUseCase(
     private val database: AppDatabase
@@ -15,6 +17,9 @@ class ConsumeIngredientsUseCase(
     suspend fun execute(recipeId: Long, batchSize: Int): ConsumeResult {
         // Проверка количества порций
         require(batchSize > 0) { "batchSize должен быть положительным" }
+
+        // Диагностика
+        Log.d("WarehouseDiag", "Запуск списания: версия ${BuildConfig.VERSION_NAME}, SHA ${BuildConfig.GIT_SHA}, рецепт=$recipeId, порций=$batchSize")
 
         // Проверка существования рецепта
         val recipe = database.returnRecipeDao().getRecipeById(recipeId)
