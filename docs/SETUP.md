@@ -14,6 +14,12 @@ git checkout <тег или ветка, указанные в отчёте>
 - эмулятор или устройство с Android API 24 и выше (`minSdk = 24`);
 - установленный Android SDK 37 (`compileSdk = 37`);
 - доступ в интернет только для первой сборки: Gradle скачивает зависимости.
+  - Если Gradle выдаёт "requires JVM 17 or later... currently using JVM 11",
+    укажите JDK 17 вручную:
+  в Android Studio: File → Settings → Build, Execution, Deployment →
+    Build Tools → Gradle → Gradle JDK = 17;
+    в терминале PowerShell: $env:JAVA_HOME = "C:\Program Files\Java\jdk-17"
+  перед запуском .\gradlew.bat.
 
 ## Конфигурация сборки
 
@@ -41,6 +47,11 @@ android.newDsl=false
 ```
 
 Затем запустить приложение на эмуляторе: экран «Партии блюд» показывает карточки партий; при пустой базе — «Нет партий блюд».
+Если на эмуляторе уже установлена прежняя версия Kitchino, удалите её
+перед установкой, иначе Room может не открыть базу из-за несовпадения
+схемы:
+adb uninstall com.kitchino.app
+или через Настройки эмулятора → Приложения → Kitchino → Удалить.
 
 ## Ограничения безопасности
 
