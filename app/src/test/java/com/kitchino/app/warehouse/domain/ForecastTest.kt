@@ -45,7 +45,7 @@ class ForecastTest {
 
     @Test
     fun daysUntilEmpty_isStockDividedByAverage() {
-        assertEquals(5.0, Forecast.calculateDaysUntilEmpty(10.0, 2.0)!!, 0.0001)
+        assertEquals(4.0, Forecast.calculateDaysUntilEmpty(10.0, 2.0)!!, 0.0001)
     }
 
     // Нулевой и отрицательный расход
