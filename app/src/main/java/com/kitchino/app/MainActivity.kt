@@ -1,17 +1,14 @@
 package com.kitchino.app
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.lifecycleScope
 import com.kitchino.app.data.AppDatabase
 import com.kitchino.app.dishbatch.data.DishBatchEntity
@@ -21,6 +18,7 @@ import com.kitchino.app.dishbatch.ui.DishBatchViewModel
 import com.kitchino.app.dishbatch.ui.DishBatchViewModelFactory
 import com.kitchino.app.ui.theme.KitchinoTheme
 import kotlinx.coroutines.launch
+import com.kitchino.app.BuildConfig
 
 class MainActivity : ComponentActivity() {
     private val database by lazy { AppDatabase.getDatabase(this) }
@@ -30,6 +28,7 @@ class MainActivity : ComponentActivity() {
     @Suppress("UNUSED_PARAMETER")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d("Kitchino", "Запуск: версия ${BuildConfig.VERSION_NAME} (${BuildConfig.BUILD_TYPE}), SHA ${BuildConfig.GIT_SHA}")
         enableEdgeToEdge()
         lifecycleScope.launch {
             database.returnDishBatchDao().insertNewBatch(

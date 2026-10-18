@@ -4,6 +4,10 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp")
 }
+val gitSha = try {
+    providers.exec { commandLine("git", "rev-parse", "--short", "HEAD") }
+        .standardOutput.asText.get().trim()
+} catch (e: Exception) { "unknown" }
 
 android {
     namespace = "com.kitchino.app"
@@ -19,6 +23,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "VERSION_NAME", "\"$versionName\"")
+        buildConfigField("String", "GIT_SHA", "\"$gitSha\"")
     }
 
     buildTypes {
@@ -43,6 +49,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
