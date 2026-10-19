@@ -19,11 +19,14 @@ import com.kitchino.app.dishbatch.ui.DishBatchViewModelFactory
 import com.kitchino.app.ui.theme.KitchinoTheme
 import kotlinx.coroutines.launch
 import com.kitchino.app.BuildConfig
+import com.kitchino.app.dishbatch.domain.DiscountDecisionProvider
+import com.kitchino.app.dishbatch.domain.VelocityDiscountDecision
 
 class MainActivity : ComponentActivity() {
     private val database by lazy { AppDatabase.getDatabase(this) }
     private val dishBatchViewModel: DishBatchViewModel by viewModels {
-        DishBatchViewModelFactory(database.returnDishBatchDao(), database.returnDiscountDecisionDao(), database.returnSalesLogDao())
+        val decisionProvider: DiscountDecisionProvider = VelocityDiscountDecision(portionsPerHour = 5.0)
+        DishBatchViewModelFactory(database.returnDishBatchDao(), database.returnDiscountDecisionDao(), database.returnSalesLogDao(), decisionProvider)
     }
     @Suppress("UNUSED_PARAMETER")
     override fun onCreate(savedInstanceState: Bundle?) {
