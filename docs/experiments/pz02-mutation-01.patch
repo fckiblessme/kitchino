@@ -1,0 +1,13 @@
+diff --git a/app/src/main/java/com/kitchino/app/dishbatch/domain/DiscountDecisionEngine.kt b/app/src/main/java/com/kitchino/app/dishbatch/domain/DiscountDecisionEngine.kt
+index fc364bb..e2aff76 100644
+--- a/app/src/main/java/com/kitchino/app/dishbatch/domain/DiscountDecisionEngine.kt
++++ b/app/src/main/java/com/kitchino/app/dishbatch/domain/DiscountDecisionEngine.kt
+@@ -26,7 +26,7 @@ object DiscountDecisionEngine {
+                 partOfRemainingTime <= 0.0 -> DiscountDecision(DecisionType.WRITE_OFF, null, "Срок истек")
+                 partOfRemainingTime < WRITEOFF_THRESHOLD -> DiscountDecision(DecisionType.WRITE_OFF, null, "Менее 5% от срока жизни блюда")
+                 partOfRemainingTime < HEAVY_DISCOUNT_THRESHOLD -> DiscountDecision(DecisionType.DISCOUNT, 50.0, "Менее 20% от срока жизни блюда")
+-                partOfRemainingTime < LIGHT_DISCOUNT_THRESHOLD -> DiscountDecision(DecisionType.DISCOUNT, 20.0, "Менее 50% от срока жизни блюда")
++                partOfRemainingTime <= LIGHT_DISCOUNT_THRESHOLD -> DiscountDecision(DecisionType.DISCOUNT, 20.0, "Менее 50% от срока жизни блюда")
+                 else -> {
+                     DiscountDecision(DecisionType.NO_ACTION, null, "Срок годности еще не подходит к концу")
+                 }

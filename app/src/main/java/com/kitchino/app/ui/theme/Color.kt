@@ -13,3 +13,5 @@ val Pink40 = Color(0xFF7D5260)
 val LightGreen = Color(0xFFB8D18F)
 val LightOrange = Color(0xFFF6972D)
 val LightRed = Color(0xFFFFE34C)
+
+val DishButtonColor = Color(0xFF2E7D32)
