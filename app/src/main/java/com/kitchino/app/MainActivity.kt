@@ -146,8 +146,7 @@ class MainActivity : ComponentActivity() {
                                 )
                                 val makeDishVm: MakeDishViewModel = viewModel(
                                     factory = MakeDishViewModelFactory(
-                                        repository = warehouseDependencies.repository,
-                                        consumeIngredientsUseCase = warehouseDependencies.consumeIngredientsUseCase
+                                        warehouseApi = warehouseDependencies.warehouseApi
                                     )
                                 )
                                 val state by recipesVm.uiState.collectAsState()

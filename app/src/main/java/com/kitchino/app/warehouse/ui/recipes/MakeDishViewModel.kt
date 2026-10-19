@@ -4,8 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.kitchino.app.core.contracts.ConsumeResult
-import com.kitchino.app.warehouse.data.repository.WarehouseRepository
-import com.kitchino.app.warehouse.domain.ConsumeIngredientsUseCase
+import com.kitchino.app.core.contracts.WarehouseApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,8 +20,7 @@ data class MakeDishUiState(
 
 
 class MakeDishViewModel(
-    private val repository: WarehouseRepository,
-    private val consumeIngredientsUseCase: ConsumeIngredientsUseCase
+    private val warehouseApi: WarehouseApi
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MakeDishUiState())
@@ -47,20 +45,19 @@ class MakeDishViewModel(
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isSubmitting = true, result = null)
-            val result = consumeIngredientsUseCase.execute(recipeId, batchSize)
+            val result = warehouseApi.consumeIngredients(recipeId, batchSize)
             _uiState.value = _uiState.value.copy(isSubmitting = false, result = result)
         }
     }
 }
 
 class MakeDishViewModelFactory(
-    private val repository: WarehouseRepository,
-    private val consumeIngredientsUseCase: ConsumeIngredientsUseCase
+    private val warehouseApi: WarehouseApi
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MakeDishViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return MakeDishViewModel(repository, consumeIngredientsUseCase) as T
+            return MakeDishViewModel(warehouseApi) as T
         }
         throw IllegalArgumentException("Неизвестный класс ViewModel: ${modelClass.name}")
     }
