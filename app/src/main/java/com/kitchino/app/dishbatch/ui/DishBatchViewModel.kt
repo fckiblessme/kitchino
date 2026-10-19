@@ -13,6 +13,7 @@ import com.kitchino.app.dishbatch.data.SalesLogEntity
 import com.kitchino.app.dishbatch.data.Status
 import com.kitchino.app.dishbatch.domain.DiscountDecision
 import com.kitchino.app.dishbatch.domain.DiscountDecisionEngine
+import com.kitchino.app.dishbatch.domain.DiscountDecisionProvider
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.WhileSubscribed
@@ -29,11 +30,12 @@ data class BatchUI (
 class DishBatchViewModel (
     private val batchDao: DishBatchDao,
     private val decisionDao: DiscountDecisionDao,
-    private val salesLogDao: SalesLogDao
+    private val salesLogDao: SalesLogDao,
+    private val decisionProvider: DiscountDecisionProvider
 ) : ViewModel() {
     val activeBatchesWithDecisions: StateFlow<List<BatchUI>> = batchDao.getAllBatches()
         .map { batches -> val now = System.currentTimeMillis()
-        batches.map {batch -> BatchUI(batch, DiscountDecisionEngine.recommendAction(batch, now)) }
+        batches.map {batch -> BatchUI(batch, decisionProvider.recommendAction(batch, now)) }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun applyDecision(item: BatchUI) = viewModelScope.launch {
@@ -73,10 +75,11 @@ class DishBatchViewModel (
 class DishBatchViewModelFactory(
     private val batchDao: DishBatchDao,
     private val decisionDao: DiscountDecisionDao,
-    private val salesLogDao: SalesLogDao
+    private val salesLogDao: SalesLogDao,
+    private val decisionProvider: DiscountDecisionProvider
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class <T>) : T {
         @Suppress("UNCHECKED_CAST")
-        return DishBatchViewModel(batchDao, decisionDao, salesLogDao) as T
+        return DishBatchViewModel(batchDao, decisionDao, salesLogDao, decisionProvider) as T
     }
 }
