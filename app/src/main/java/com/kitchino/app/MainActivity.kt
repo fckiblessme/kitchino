@@ -45,16 +45,25 @@ import com.kitchino.app.warehouse.ui.recipes.RecipesViewModelFactory
 import kotlinx.coroutines.launch
 import com.kitchino.app.BuildConfig
 import com.kitchino.app.dishbatch.domain.DiscountDecisionProvider
+import com.kitchino.app.dishbatch.domain.ExpiryDiscountDecision
 import com.kitchino.app.dishbatch.domain.VelocityDiscountDecision
 
 class MainActivity : ComponentActivity() {
     private val database by lazy { AppDatabase.getDatabase(this) }
 
     private val dishBatchViewModel: DishBatchViewModel by viewModels {
+        // Вариант 1 — базовая реализация (только срок годности)
+        val decisionProvider: DiscountDecisionProvider = ExpiryDiscountDecision()
 
-        val decisionProvider: DiscountDecisionProvider = VelocityDiscountDecision(portionsPerHour = 5.0)
-        DishBatchViewModelFactory(database.returnDishBatchDao(), database.returnDiscountDecisionDao(), database.returnSalesLogDao(), decisionProvider)
+        // Вариант 2 — реализация с учётом темпа продаж
+        // val decisionProvider: DiscountDecisionProvider = VelocityDiscountDecision(portionsPerHour = 5.0)
 
+        DishBatchViewModelFactory(
+            database.returnDishBatchDao(),
+            database.returnDiscountDecisionDao(),
+            database.returnSalesLogDao(),
+            decisionProvider
+        )
     }
 
     private val warehouseDependencies by lazy { WarehouseDependencies(database) }
