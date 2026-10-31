@@ -15,3 +15,7 @@ val LightOrange = Color(0xFFF6972D)
 val LightRed = Color(0xFFFFE34C)
 
 val DishButtonColor = Color(0xFF2E7D32)
+
+val StartScreenColor = Color(0xFFFFFEFE)
+
+val StartScreenButtons =  Color(0xFF354E20)
