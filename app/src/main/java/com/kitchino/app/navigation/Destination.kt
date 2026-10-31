@@ -1,9 +1,5 @@
 package com.kitchino.app.navigation
 
-import android.net.NetworkInfo
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-
 sealed class Destination(val route: String) {
     data object DishBatchScreen : Destination(ROUTE_DISHBATCH_SCREEN)
     data object StartScreen: Destination(ROUTE_START_SCREEN)
