@@ -155,7 +155,6 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             KitchinoTheme {
-                // Используем одно имя — "main"
                 var screen by remember { mutableStateOf("login") }
 
                 when (screen) {
@@ -220,7 +219,7 @@ fun MainScreenContent(
                     )
                     val makeDishVm: MakeDishViewModel = viewModel(
                         factory = MakeDishViewModelFactory(
-                            warehouseApi = warehouseDependencies.warehouseApi   // ← ВОТ ТАК
+                            warehouseApi = warehouseDependencies.warehouseApi
                         )
                     )
                     val state by recipesVm.uiState.collectAsState()
