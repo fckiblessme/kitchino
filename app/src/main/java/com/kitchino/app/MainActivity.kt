@@ -220,8 +220,7 @@ fun MainScreenContent(
                     )
                     val makeDishVm: MakeDishViewModel = viewModel(
                         factory = MakeDishViewModelFactory(
-                            repository = warehouseDependencies.repository,
-                            consumeIngredientsUseCase = warehouseDependencies.consumeIngredientsUseCase
+                            warehouseApi = warehouseDependencies.warehouseApi   // ← ВОТ ТАК
                         )
                     )
                     val state by recipesVm.uiState.collectAsState()
