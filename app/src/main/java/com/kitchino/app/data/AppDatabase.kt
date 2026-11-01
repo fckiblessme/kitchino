@@ -35,6 +35,9 @@ import com.kitchino.app.employee.data.TrainingDao
 import com.kitchino.app.employee.data.AuditLogDao
 
 
+private const val DEFAULT_MANAGER_PIN_HASH =
+    "\$2a\$10\$kA5Q6W7MgwBzbspxdI5g2urbnhfF2KhO7MfgFikUrG2GqZh9exy3m"
+
 val MIGRATION_1_2 = object : Migration(1,2) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("CREATE TABLE IF NOT EXISTS `ingredient` (`idIngredient` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `unit` TEXT NOT NULL, `leadTimeDays` INTEGER NOT NULL)")
@@ -91,6 +94,15 @@ abstract class AppDatabase  : RoomDatabase(){
                         "app_database"
                     ).addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                         .fallbackToDestructiveMigration()
+                        .addCallback(object : RoomDatabase.Callback() {
+                            override fun onCreate(db: SupportSQLiteDatabase) {
+                                super.onCreate(db)
+                                db.execSQL(
+                                    "INSERT INTO employees (name, role, pinHash) VALUES (?, ?, ?)",
+                                    arrayOf("admin", "MANAGER", DEFAULT_MANAGER_PIN_HASH)
+                                )
+                            }
+                        })
                         .build()
                 }
                 return instance!!

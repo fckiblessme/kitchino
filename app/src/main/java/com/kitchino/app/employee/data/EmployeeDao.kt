@@ -15,4 +15,10 @@ interface EmployeeDao {
 
     @Query("Select * from employees where id = :id")
     suspend fun findById(id: Long) :EmployeeEntity?
+
+    @Query("SELECT * FROM employees WHERE name = :name LIMIT 1")
+    suspend fun findByName(name: String): EmployeeEntity?
+
+    @Query("UPDATE employees SET pinHash = :hash WHERE id = :id")
+    suspend fun updatePin(id: Long, hash: String)
 }
