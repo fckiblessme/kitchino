@@ -52,7 +52,6 @@ import com.kitchino.app.BuildConfig
 import com.kitchino.app.auth.AuthViewModel
 import com.kitchino.app.dishbatch.domain.DiscountDecisionProvider
 import com.kitchino.app.dishbatch.domain.ExpiryDiscountDecision
-import com.kitchino.app.dishbatch.domain.VelocityDiscountDecision
 import com.kitchino.app.employee.data.EmployeeEntity
 import com.kitchino.app.employee.data.Role
 
@@ -84,8 +83,8 @@ class MainActivity : ComponentActivity() {
         Log.d("Kitchino", "Запуск: версия ${BuildConfig.VERSION_NAME} " +
                 "(${BuildConfig.BUILD_TYPE}), SHA ${BuildConfig.GIT_SHA}")
         enableEdgeToEdge()
-        lifecycleScope.launch {
 
+        lifecycleScope.launch {
             val employeeDao = database.returnEmployeeDao()
             if (employeeDao.findByName("admin") == null) {
                 employeeDao.insertEmployee(
@@ -97,6 +96,7 @@ class MainActivity : ComponentActivity() {
                 )
                 Log.d("Auth", "Создан менеджер admin/0000")
             }
+
             // Тестовые данные
             database.returnDishBatchDao().insertNewBatch(
                 DishBatchEntity(
@@ -155,12 +155,13 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             KitchinoTheme {
+                // Используем одно имя — "main"
                 var screen by remember { mutableStateOf("login") }
 
                 when (screen) {
                     "login" -> LoginScreen(
                         viewModel = authViewModel,
-                        onMenuClick = { screen = "menu" }
+                        onMenuClick = { screen = "main" }   
                     )
 
                     "main" -> MainScreenContent(
