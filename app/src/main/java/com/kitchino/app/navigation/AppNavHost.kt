@@ -7,13 +7,17 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.kitchino.app.MainScreenContent
 import com.kitchino.app.auth.AuthViewModel
 import com.kitchino.app.data.AppDatabase
+import com.kitchino.app.dishbatch.ui.DishBatchViewModel
 import com.kitchino.app.ui.LoginScreen
 import com.kitchino.app.ui.StartScreen
+import com.kitchino.app.warehouse.WarehouseDependencies
 
 @Composable
-fun AppNavHost(navController: NavHostController) {
+fun AppNavHost(navController: NavHostController, dishBatchViewModel: DishBatchViewModel,
+               warehouseDependencies: WarehouseDependencies, onLogout: () -> Unit) {
 
     // Создаём AuthViewModel через фабрику (требуется контекст для БД)
     val context = LocalContext.current
@@ -42,13 +46,26 @@ fun AppNavHost(navController: NavHostController) {
             )
         }
 
-        composable(route = "login_screen") {
+        composable(route = Destination.LoginScreen.route) {
             LoginScreen(
                 viewModel = authViewModel,
                 onMenuClick = {
                     navController.navigate(Destination.MenuScreen.route) {
-                        // Чтобы кнопка «Назад» не возвращала на экран входа
                         popUpTo(Destination.StartScreen.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(route = Destination.MenuScreen.route) {
+            MainScreenContent(
+                database = AppDatabase.getDatabase(context),
+                dishBatchViewModel = dishBatchViewModel,
+                warehouseDependencies = warehouseDependencies,
+                onLogout = {
+                    onLogout()
+                    navController.navigate(Destination.StartScreen.route) {
+                        popUpTo(0) { inclusive = true }  // чистим весь стек
                     }
                 }
             )
