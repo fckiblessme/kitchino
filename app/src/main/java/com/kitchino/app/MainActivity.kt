@@ -25,6 +25,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.rememberNavController
 import com.kitchino.app.data.AppDatabase
 import com.kitchino.app.dishbatch.data.DishBatchEntity
 import com.kitchino.app.dishbatch.data.Status
@@ -54,6 +55,7 @@ import com.kitchino.app.dishbatch.domain.DiscountDecisionProvider
 import com.kitchino.app.dishbatch.domain.ExpiryDiscountDecision
 import com.kitchino.app.employee.data.EmployeeEntity
 import com.kitchino.app.employee.data.Role
+import com.kitchino.app.navigation.AppNavHost
 
 class MainActivity : ComponentActivity() {
     private val database by lazy { AppDatabase.getDatabase(this) }
@@ -155,24 +157,13 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             KitchinoTheme {
-                var screen by remember { mutableStateOf("login") }
-
-                when (screen) {
-                    "login" -> LoginScreen(
-                        viewModel = authViewModel,
-                        onMenuClick = { screen = "main" }   
-                    )
-
-                    "main" -> MainScreenContent(
-                        database = database,
-                        dishBatchViewModel = dishBatchViewModel,
-                        warehouseDependencies = warehouseDependencies,
-                        onLogout = {
-                            authViewModel.reset()
-                            screen = "login"
-                        }
-                    )
-                }
+                val navController = rememberNavController()
+                AppNavHost(
+                    navController = navController,
+                    dishBatchViewModel = dishBatchViewModel,
+                    warehouseDependencies = warehouseDependencies,
+                    onLogout = { authViewModel.reset() }
+                )
             }
         }
     }
