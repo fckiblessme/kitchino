@@ -60,4 +60,6 @@ class EmployeeRepository (
     suspend fun getAllLogs() : List<AuditLogEntity> {
         return auditLogDao.getAllLogs()
     }
+
+
 }

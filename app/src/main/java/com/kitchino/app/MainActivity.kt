@@ -46,6 +46,8 @@ import kotlinx.coroutines.launch
 import com.kitchino.app.BuildConfig
 import com.kitchino.app.dishbatch.domain.DiscountDecisionProvider
 import com.kitchino.app.dishbatch.domain.VelocityDiscountDecision
+import com.kitchino.app.employee.data.EmployeeEntity
+import com.kitchino.app.employee.ui.EmployeeScreen
 
 class MainActivity : ComponentActivity() {
     private val database by lazy { AppDatabase.getDatabase(this) }
@@ -122,6 +124,7 @@ class MainActivity : ComponentActivity() {
                             TextButton(onClick = { currentTab = 0 }) { Text("Партии") }
                             TextButton(onClick = { currentTab = 1 }) { Text("Склад") }
                             TextButton(onClick = { currentTab = 2 }) { Text("Рецепты") }
+                            TextButton(onClick = { currentTab = 3 }) { Text("Сотрудники") }
                         }
 
                         when (currentTab) {
@@ -155,6 +158,8 @@ class MainActivity : ComponentActivity() {
                                     makeDishViewModel = makeDishVm
                                 )
                             }
+
+                            3 -> EmployeeScreen()
                         }
                     }
                 }
