@@ -159,7 +159,8 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
 
-                            3 -> EmployeeScreen()
+                            3 ->  EmployeeScreen(dependencies = com.kitchino.app.employee.EmployeeDependencies(database))
+
                         }
                     }
                 }
