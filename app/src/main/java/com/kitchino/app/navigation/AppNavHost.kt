@@ -9,7 +9,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.kitchino.app.MainScreenContent
 import com.kitchino.app.auth.AuthViewModel
 import com.kitchino.app.data.AppDatabase
 import com.kitchino.app.dishbatch.ui.DishBatchScreen
@@ -31,9 +30,12 @@ import com.kitchino.app.warehouse.ui.recipes.RecipesViewModel
 import com.kitchino.app.warehouse.ui.recipes.RecipesViewModelFactory
 
 @Composable
-fun AppNavHost(navController: NavHostController, dishBatchViewModel: DishBatchViewModel,
-               warehouseDependencies: WarehouseDependencies, onLogout: () -> Unit) {
-
+fun AppNavHost(
+    navController: NavHostController,
+    dishBatchViewModel: DishBatchViewModel,
+    warehouseDependencies: WarehouseDependencies,
+    onLogout: () -> Unit
+) {
     val context = LocalContext.current
     val authViewModel: AuthViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
@@ -49,7 +51,7 @@ fun AppNavHost(navController: NavHostController, dishBatchViewModel: DishBatchVi
         navController = navController,
         startDestination = Destination.StartScreen.route
     ) {
-        composable(route = "start_screen") {
+        composable(Destination.StartScreen.route) {
             StartScreen(
                 onLoginClick = {
                     navController.navigate(Destination.LoginScreen.route)
@@ -60,7 +62,7 @@ fun AppNavHost(navController: NavHostController, dishBatchViewModel: DishBatchVi
             )
         }
 
-        composable(route = Destination.LoginScreen.route) {
+        composable(Destination.LoginScreen.route) {
             LoginScreen(
                 viewModel = authViewModel,
                 onMenuClick = {
@@ -71,29 +73,18 @@ fun AppNavHost(navController: NavHostController, dishBatchViewModel: DishBatchVi
             )
         }
 
-        composable(route = Destination.MenuScreen.route) {
-            MainScreenContent(
-                database = AppDatabase.getDatabase(context),
-                dishBatchViewModel = dishBatchViewModel,
-                warehouseDependencies = warehouseDependencies,
-                onLogout = {
+        composable(Destination.RegistrationScreen.route) {
+            RegistrationScreen(
+                viewModel = authViewModel,
+                onLoginClick = {
                     onLogout()
-                    navController.navigate(Destination.StartScreen.route) {
-                        popUpTo(0) { inclusive = true }  // чистим весь стек
+                    navController.navigate(Destination.LoginScreen.route) {
+                        popUpTo(0) { inclusive = true }
                     }
                 }
             )
         }
 
-        composable(route = "registration_screen") {
-            RegistrationScreen(viewModel = authViewModel,
-                onLoginClick = {
-                    onLogout()
-                    navController.navigate(Destination.LoginScreen.route){
-                        popUpTo(0) {inclusive = true}
-                    }
-                })
-        }
 
         composable(Destination.MenuScreen.route) {
             MenuScreen(
@@ -106,12 +97,14 @@ fun AppNavHost(navController: NavHostController, dishBatchViewModel: DishBatchVi
                             navController.navigate(Destination.Recipes.route)
                         Action.WRITE_OFF_PRODUCTS ->
                             navController.navigate(Destination.IngredientsScreen.route)
-                        Action.APPLICATION_DISCOUNT -> { /* TODO: экран скидок */ }
+                        Action.APPLICATION_DISCOUNT ->
+                            navController.navigate(Destination.DishBatchScreen.route)
                         Action.VIEW_AUDIT -> { /* TODO: экран аудита */ }
                         Action.EMPLOYEE_MANAGEMENT -> { /* TODO: экран сотрудников */ }
                     }
                 },
                 onLogout = {
+                    onLogout()
                     authViewModel.reset()
                     navController.navigate(Destination.StartScreen.route) {
                         popUpTo(0) { inclusive = true }
