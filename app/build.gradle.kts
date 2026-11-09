@@ -79,6 +79,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation("androidx.navigation:navigation-compose:2.8.4")
     implementation("org.mindrot:jbcrypt:0.4")
+    implementation("androidx.compose.material:material-icons-extended")
 }
 
 // Имена и результат каждой проверки видны в журнале локального запуска и в CI

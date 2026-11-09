@@ -91,8 +91,8 @@ fun RegistrationScreen(onLoginClick: () -> Unit = {}, viewModel: AuthViewModel) 
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = StartScreenColor,
-                    focusedLabelColor = StartScreenColor
+                    focusedBorderColor = StartScreenButtons,
+                    focusedLabelColor = StartScreenButtons
                 )
             )
 
@@ -130,8 +130,8 @@ fun RegistrationScreen(onLoginClick: () -> Unit = {}, viewModel: AuthViewModel) 
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                 visualTransformation = PasswordVisualTransformation(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = StartScreenColor,
-                    focusedLabelColor = StartScreenColor
+                    focusedBorderColor = StartScreenButtons,
+                    focusedLabelColor = StartScreenButtons
                 )
             )
 
@@ -147,8 +147,8 @@ fun RegistrationScreen(onLoginClick: () -> Unit = {}, viewModel: AuthViewModel) 
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                 visualTransformation = PasswordVisualTransformation(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = StartScreenColor,
-                    focusedLabelColor = StartScreenColor
+                    focusedBorderColor = StartScreenButtons,
+                    focusedLabelColor = StartScreenButtons
                 )
             )
 
@@ -163,7 +163,7 @@ fun RegistrationScreen(onLoginClick: () -> Unit = {}, viewModel: AuthViewModel) 
                     }
                 },
                 modifier = Modifier
-                    .width(200.dp)
+                    .width(240.dp)
                     .height(80.dp)
                     .padding(top = 24.dp),
                 colors = ButtonColors(
