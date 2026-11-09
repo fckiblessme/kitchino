@@ -50,7 +50,6 @@ fun LoginScreen(onMenuClick: () -> Unit = {}, viewModel: AuthViewModel) {
     LaunchedEffect(state) {
         if(state is AuthViewModel.State.LoggedIn){
             onMenuClick()
-            viewModel.reset()
         }
     }
     Box(
@@ -81,8 +80,8 @@ fun LoginScreen(onMenuClick: () -> Unit = {}, viewModel: AuthViewModel) {
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = StartScreenColor,
-                    focusedLabelColor = StartScreenColor
+                    focusedBorderColor = StartScreenButtons,
+                    focusedLabelColor = StartScreenButtons
                 )
             )
 
@@ -98,8 +97,8 @@ fun LoginScreen(onMenuClick: () -> Unit = {}, viewModel: AuthViewModel) {
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                 visualTransformation = PasswordVisualTransformation(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = StartScreenColor,
-                    focusedLabelColor = StartScreenColor
+                    focusedBorderColor = StartScreenButtons,
+                    focusedLabelColor = StartScreenButtons
                 )
             )
 

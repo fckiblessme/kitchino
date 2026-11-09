@@ -1,15 +1,26 @@
 package com.kitchino.app.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,25 +30,46 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.kitchino.app.auth.AuthViewModel
+import com.kitchino.app.employee.data.EmployeeEntity
+import com.kitchino.app.employee.data.Role
 import com.kitchino.app.employee.domain.Action
 import com.kitchino.app.employee.domain.PermissionChecker
 import com.kitchino.app.ui.theme.StartScreenColor
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material3.Card
 
 @Composable
-fun MenuScreen(onActionClick: (Action) -> Unit, viewModel: AuthViewModel) {
+fun MenuScreen(
+    viewModel: AuthViewModel,
+    onActionClick: (Action) -> Unit = {},
+    onLogout: () -> Unit = {}
+) {
     val authState by viewModel.state.collectAsState()
-    val role = (authState as? AuthViewModel.State.LoggedIn)?.user?.role
-    val checker = PermissionChecker()
+    val user = (authState as? AuthViewModel.State.LoggedIn)?.user
 
-    val allowedActions = if (role != null){
-        Action.entries.filter { checker.can(role, it) }
+    MenuScreenContent(
+        user = user,
+        onActionClick = onActionClick,
+        onLogout = onLogout
+    )
+}
+
+@Composable
+fun MenuScreenContent(
+    user: EmployeeEntity?,
+    onActionClick: (Action) -> Unit = {},
+    onLogout: () -> Unit = {}
+) {
+    val checker = PermissionChecker()
+    val allowedActions = if (user != null) {
+        Action.entries.filter { checker.can(user.role, it) }
     } else {
         emptyList()
     }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -46,42 +78,107 @@ fun MenuScreen(onActionClick: (Action) -> Unit, viewModel: AuthViewModel) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .padding(24.dp)
         ) {
-            Text(
-                text = "Меню",
-                style = MaterialTheme.typography.headlineLarge,
-                color = Color.Black,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 96.dp, bottom = 16.dp)
-            )
-
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                items(allowedActions) { action ->
-                    Card(
-                        modifier = Modifier.padding(8.dp).fillMaxWidth().clickable { onActionClick(action)}
-                    ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        text = "Меню",
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = Color.Black,
+                        fontWeight = FontWeight.Bold
+                    )
+                    user?.let {
                         Text(
-                            text =  when (action) {
-                                Action.MAKE_DISH -> "Приготовление блюда"
-                                Action.WRITE_OFF_PRODUCTS -> "Списание продуктов"
-                                Action.APPLICATION_DISCOUNT -> "Применение скидки"
-                                Action.EDIT_RECIPE -> "Редактирование рецепта"
-                                Action.VIEW_AUDIT -> "Просмотр аудита"
-                                Action.EMPLOYEE_MANAGEMENT -> "Управление сотрудниками"
-                            },
-                            modifier = Modifier.padding(16.dp),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Medium,
-                            color = Color.Black
+                            text = "${it.name} · ${it.role}",
+                            fontSize = 14.sp,
+                            color = Color.DarkGray
                         )
+                    }
+                }
+                IconButton(onClick = onLogout) {
+                    Icon(
+                        imageVector = Icons.Filled.Logout,
+                        contentDescription = "Выйти",
+                        tint = Color.Black
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            if (user == null) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(allowedActions) { action ->
+                        MenuCardItem(action = action, onClick = { onActionClick(action) })
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun MenuCardItem(action: Action, onClick: () -> Unit) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(1f),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = action.label,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
+                color = Color.Black,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "Меню — менеджер")
+@Composable
+fun MenuScreenManagerPreview() {
+    MenuScreenContent(
+        user = EmployeeEntity(
+            name = "admin",
+            role = Role.MANAGER,
+            pinHash = ""
+        ),
+        onActionClick = {},
+        onLogout = {}
+    )
+}
+
+@Preview(showBackground = true, name = "Меню — без входа")
+@Composable
+fun MenuScreenLoadingPreview() {
+    MenuScreenContent(
+        user = null,
+        onActionClick = {},
+        onLogout = {}
+    )
 }

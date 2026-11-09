@@ -7,7 +7,7 @@ sealed class Destination(val route: String) {
     data object RegistrationScreen: Destination(ROUTE_REGISTRATION_SCREEN)
     data object MenuScreen: Destination(ROUTE_MENU_SCREEN)
     data object IngredientsScreen: Destination(ROUTE_INGREDIENTS_SCREEN)
-    data object RecipesScreen: Destination(ROUTE_RECIPES_SCREEN)
+    data object Recipes: Destination(ROUTE_RECIPES_SCREEN)
 
     companion object{
         private const val ROUTE_START_SCREEN = "start_screen"
