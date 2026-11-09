@@ -15,4 +15,7 @@ interface EmployeeDao {
 
     @Query("Select * from employees where id = :id")
     suspend fun findById(id: Long) :EmployeeEntity?
+
+    @Query("Select * from employees where name = :name limit 1")
+    suspend fun findByName(name: String) : EmployeeEntity?
 }
