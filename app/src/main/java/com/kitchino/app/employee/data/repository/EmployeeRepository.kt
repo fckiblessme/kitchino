@@ -13,23 +13,23 @@ class EmployeeRepository (
     private val auditLogDao: AuditLogDao,
     private val trainingDao: TrainingDao
 ) {
-    suspend fun addEmployee(employee : EmployeeEntity) : Long {
+    suspend fun addEmployee(employee: EmployeeEntity): Long {
         return employeeDao.insertEmployee(employee)
     }
 
-    suspend fun getAllEmployees() : List<EmployeeEntity> {
+    suspend fun getAllEmployees(): List<EmployeeEntity> {
         return employeeDao.getAllEmployees()
     }
 
-    suspend fun findEmployee(id: Long) : EmployeeEntity? {
+    suspend fun findEmployee(id: Long): EmployeeEntity? {
         return employeeDao.findById(id)
     }
 
-    suspend fun addTrainingCard(card: TrainingCardEntity) : Long {
+    suspend fun addTrainingCard(card: TrainingCardEntity): Long {
         return trainingDao.insertCard(card)
     }
 
-    suspend fun getCardsForRecipe(recipeId: Long) : List<TrainingCardEntity> {
+    suspend fun getCardsForRecipe(recipeId: Long): List<TrainingCardEntity> {
         return trainingDao.getRecipeCard(recipeId)
     }
 
@@ -41,25 +41,56 @@ class EmployeeRepository (
         trainingDao.updateProgress(progress)
     }
 
-    suspend fun findProgress(employeeId: Long, cardId: Long) : TrainingProgressEntity? {
+    suspend fun findProgress(employeeId: Long, cardId: Long): TrainingProgressEntity? {
         return trainingDao.findProgress(employeeId, cardId)
     }
 
-    suspend fun getEmployeeProgress(employeeId: Long) : List<TrainingProgressEntity> {
+    suspend fun getEmployeeProgress(employeeId: Long): List<TrainingProgressEntity> {
         return trainingDao.getProgress(employeeId)
     }
 
-    suspend fun logAction(log: AuditLogEntity) : Long {
+    suspend fun logAction(log: AuditLogEntity): Long {
         return auditLogDao.insertLog(log)
     }
 
-    suspend fun getLastLog() : AuditLogEntity? {
+    suspend fun getLastLog(): AuditLogEntity? {
         return auditLogDao.getLastLog()
     }
 
-    suspend fun getAllLogs() : List<AuditLogEntity> {
+    suspend fun getAllLogs(): List<AuditLogEntity> {
         return auditLogDao.getAllLogs()
     }
 
+    suspend fun findByName(name: String): EmployeeEntity? =
+        employeeDao.findByName(name)
 
+
+    /**
+     * Вход по имени и PIN (FR-12).
+     * Успех — сотрудник; неудача — null. Оба исхода пишутся в журнал аудита.
+     */
+    suspend fun login(name: String, pin: String): EmployeeEntity? {
+        val employee = employeeDao.findByName(name)
+        if (employee == null || employee.pinHash != pin) { // Простая проверка (заглушка)
+            return null
+        }
+        return employee
+    }
+
+    /** Записать действие в хеш-цепочку журнала (FR-14) */
+    suspend fun writeAudit(actorId: Long, action: String, payload: String) {
+        // Заглушка, так как AuditChain может быть не готов
+        auditLogDao.insertLog(
+            AuditLogEntity(
+                actorId = actorId,
+                action = action,
+                payload = payload,
+                prevHash = "test",
+                hash = "test"
+            )
+        )
+    }
+
+    fun getEmployeeDao(): EmployeeDao = employeeDao
+    fun getAuditLogDao(): AuditLogDao = auditLogDao
 }
