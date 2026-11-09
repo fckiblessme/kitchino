@@ -1,66 +1,107 @@
 package com.kitchino.app.employee.ui
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.kitchino.app.employee.EmployeeDependencies
 import com.kitchino.app.employee.data.Role
 import com.kitchino.app.employee.domain.Action
 import com.kitchino.app.employee.domain.PermissionChecker
+import com.kitchino.app.employee.ui.audit.AuditScreen
+import com.kitchino.app.employee.ui.audit.AuditViewModel
+import com.kitchino.app.employee.ui.audit.AuditViewModelFactory
 
-enum class EmployeeScreenState {LIST, MENU, ACTIONS, TRAINING}
+enum class EmployeeScreenState { ACTIONS, TRAINING, AUDIT }
 
 @Composable
-fun EmployeeScreen() {
-    var currentScreen by remember {mutableStateOf(EmployeeScreenState.LIST)}
-    var currentRole by remember { mutableStateOf(Role.COOK) }
-
-    when (currentScreen) {
-        EmployeeScreenState.LIST -> EmployeeScreen()
+fun EmployeeScreen(dependencies: EmployeeDependencies) {
+    // Берем текущего сотрудника из SessionManager (который сделала команда)
+    val currentEmployee = remember {
+        com.kitchino.app.employee.data.EmployeeEntity(
+            id = 1, name = "Тестовый Повар", role = com.kitchino.app.employee.data.Role.COOK, pinHash = "0000"
+        )
     }
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+    val checker = remember { PermissionChecker() }
+
+    // Если никто не вошел, показываем заглушку
+//    if (currentEmployee == null) {
+//        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+//            Text("Сначала войдите в систему (вкладка Партии -> Выйти -> Войти)")
+//        }
+//        return
+//    }
+
+    val employee = currentEmployee!!
+    var currentScreen by remember { mutableStateOf(EmployeeScreenState.ACTIONS) }
+
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        // Шапка
+        Text("Сотрудник: ${employee.name}", style = MaterialTheme.typography.titleLarge)
+        Text("Роль: ${employee.role}", style = MaterialTheme.typography.titleMedium)
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Кнопки навигации по разделам модуля
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+            Button(onClick = { currentScreen = EmployeeScreenState.ACTIONS }) { Text("Действия") }
+            Button(onClick = { currentScreen = EmployeeScreenState.TRAINING }) { Text("Обучение") }
+            // Кнопку Аудита видит только менеджер
+            if (checker.can(employee.role, Action.VIEW_AUDIT)) {
+                Button(onClick = { currentScreen = EmployeeScreenState.AUDIT }) { Text("Журнал") }
+            }
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
 
-        Row(modifier = Modifier.padding(vertical = 8.dp)) {}
-        Button(onClick = {currentRole = Role.COOK}) {Text("Повар")}
-        Spacer(modifier = Modifier.width(8.dp))
-        Button(onClick = {currentRole = Role.CASHIER}) {Text("Кассир")}
-        Spacer(modifier = Modifier.width(8.dp))
-        Button(onClick = {currentRole = Role.MANAGER}) {Text("Менеджер")}
-        Spacer(modifier = Modifier.width(16.dp))
-    }
-    Text("Текущая роль: $currentRole", style = MaterialTheme.typography.titleLarge)
+        // Контент в зависимости от выбранной кнопки
+        when (currentScreen) {
+            EmployeeScreenState.ACTIONS -> {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                    Text("Доступные действия:", style = MaterialTheme.typography.titleMedium)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    ActionButton("Приготовить блюдо", Action.MAKE_DISH, employee.role, checker) {}
+                    ActionButton("Списать продукты", Action.WRITE_OFF_PRODUCTS, employee.role, checker) {}
+                    ActionButton("Применить скидку", Action.APPLICATION_DISCOUNT, employee.role, checker) {}
+                    ActionButton("Редактировать рецепт", Action.EDIT_RECIPE, employee.role, checker) {}
+                }
+            }
 
-    ActionButton("Проиготовить блюдо", Action.MAKE_DISH, currentRole, checker)
-    ActionButton("Списать продукты", Action.WRITE_OFF_PRODUCTS, currentRole, checker)
-    ActionButton("Применить скидку", Action.APPLICATION_DISCOUNT, currentRole, checker)
+            EmployeeScreenState.TRAINING -> {
+                TrainingScreen()
+            }
+
+            EmployeeScreenState.AUDIT -> {
+                // Используем ViewModel команды для журнала
+                val auditVm: AuditViewModel = viewModel(
+                    factory = AuditViewModelFactory(
+                        auditLogDao = dependencies.repository.getAuditLogDao(), // заглушка, см. ниже
+                        employeeDao = dependencies.repository.getEmployeeDao(),
+                        sessionManager = dependencies.sessionManager,
+                        permissionChecker = checker
+                    )
+                )
+                // В реальном проекте тут нужно передавать DAO напрямую.
+                // Пока для компиляции можно сделать простую заглушку экрана аудита.
+                Text("Журнал аудита (в разработке)")
+            }
+        }
+    }
 }
 
 @Composable
-fun ActionButton(title: String, action: Action, role: Role, checker: PermissionChecker) {
+fun ActionButton(title: String, action: Action, role: Role, checker: PermissionChecker, onClick: () -> Unit) {
     val access = checker.can(role, action)
-
-    Button(onClick = {}, enabled = access, modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-        Text(if (access) "$title" else "$title (Нет прав)")
+    Button(
+        onClick = onClick,
+        enabled = access,
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+    ) {
+        Text(if (access) title else "$title (Нет прав)")
     }
-
 }
-
