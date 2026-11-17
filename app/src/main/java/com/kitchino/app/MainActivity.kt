@@ -26,6 +26,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
+import com.kitchino.app.employee.EmployeeDependencies
 import com.kitchino.app.data.AppDatabase
 import com.kitchino.app.dishbatch.data.DishBatchEntity
 import com.kitchino.app.dishbatch.data.Status
@@ -52,14 +53,16 @@ import kotlinx.coroutines.launch
 import com.kitchino.app.BuildConfig
 import com.kitchino.app.auth.AuthViewModel
 import com.kitchino.app.dishbatch.domain.DiscountDecisionProvider
-import com.kitchino.app.dishbatch.domain.ExpiryDiscountDecision
+import com.kitchino.app.dishbatch.domain.VelocityDiscountDecision
 import com.kitchino.app.employee.data.EmployeeEntity
+import com.kitchino.app.dishbatch.domain.ExpiryDiscountDecision
 import com.kitchino.app.employee.data.Role
 import com.kitchino.app.navigation.AppNavHost
 
+
 class MainActivity : ComponentActivity() {
     private val database by lazy { AppDatabase.getDatabase(this) }
-
+    private val employeeDependencies by lazy { EmployeeDependencies(database) }
     private val authViewModel: AuthViewModel by viewModels {
         object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -74,7 +77,9 @@ class MainActivity : ComponentActivity() {
             database.returnDishBatchDao(),
             database.returnDiscountDecisionDao(),
             database.returnSalesLogDao(),
-            decisionProvider
+            decisionProvider,
+            employeeDependencies.auditApi,
+            employeeDependencies.employeeApi
         )
     }
 
@@ -162,6 +167,7 @@ class MainActivity : ComponentActivity() {
                     navController = navController,
                     dishBatchViewModel = dishBatchViewModel,
                     warehouseDependencies = warehouseDependencies,
+                    employeeDependencies = employeeDependencies,
                     onLogout = { authViewModel.reset() }
                 )
             }
@@ -169,57 +175,4 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Composable
-fun MainScreenContent(
-    database: AppDatabase,
-    dishBatchViewModel: DishBatchViewModel,
-    warehouseDependencies: WarehouseDependencies,
-    onLogout: () -> Unit
-) {
-    var currentTab by remember { mutableStateOf(0) }
 
-    Scaffold(modifier = Modifier.fillMaxSize()) { paddingValues ->
-        Column(modifier = Modifier.padding(paddingValues)) {
-            Row {
-                TextButton(onClick = { currentTab = 0 }) { Text("Партии") }
-                TextButton(onClick = { currentTab = 1 }) { Text("Склад") }
-                TextButton(onClick = { currentTab = 2 }) { Text("Рецепты") }
-                Spacer(modifier = Modifier.weight(1f))
-                TextButton(onClick = onLogout) { Text("Выйти") }
-            }
-
-            when (currentTab) {
-                0 -> DishBatchScreen(viewModel = dishBatchViewModel)
-
-                1 -> {
-                    val vm: IngredientsViewModel = viewModel(
-                        factory = IngredientsViewModelFactory(
-                            repository = warehouseDependencies.repository,
-                            forecastUseCase = warehouseDependencies.forecastUseCase
-                        )
-                    )
-                    val state by vm.uiState.collectAsState()
-                    IngredientsScreen(uiState = state)
-                }
-
-                2 -> {
-                    val recipesVm: RecipesViewModel = viewModel(
-                        factory = RecipesViewModelFactory(
-                            repository = warehouseDependencies.repository
-                        )
-                    )
-                    val makeDishVm: MakeDishViewModel = viewModel(
-                        factory = MakeDishViewModelFactory(
-                            warehouseApi = warehouseDependencies.warehouseApi
-                        )
-                    )
-                    val state by recipesVm.uiState.collectAsState()
-                    RecipesScreen(
-                        uiState = state,
-                        makeDishViewModel = makeDishVm
-                    )
-                }
-            }
-        }
-    }
-}

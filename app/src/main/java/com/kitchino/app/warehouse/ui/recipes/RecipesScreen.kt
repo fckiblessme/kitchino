@@ -17,6 +17,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,7 +33,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun RecipesScreen(
     uiState: RecipesUiState,
-    makeDishViewModel: MakeDishViewModel
+    makeDishViewModel: MakeDishViewModel,
+    onStartTraining: (recipeId: Long) -> Unit
 ) {
 
     var isDialogOpen by remember { mutableStateOf(false) }
@@ -78,7 +80,7 @@ fun RecipesScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(uiState.recipes) { recipe ->
-                RecipeCard(recipe)
+                RecipeCard(recipe, onStartTraining)
             }
         }
     }
@@ -97,7 +99,10 @@ fun RecipesScreen(
 
 
 @Composable
-private fun RecipeCard(recipe: RecipeWithComposition) {
+private fun RecipeCard(
+    recipe: RecipeWithComposition,
+    onStartTraining: (Long) -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp)
@@ -144,6 +149,15 @@ private fun RecipeCard(recipe: RecipeWithComposition) {
                         )
                     }
                 }
+            }
+
+            OutlinedButton(
+                onClick = { onStartTraining(recipe.recipeId) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+            ) {
+                Text("Тренировка")
             }
         }
     }
