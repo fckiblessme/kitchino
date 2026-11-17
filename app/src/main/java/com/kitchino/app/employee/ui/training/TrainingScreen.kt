@@ -8,8 +8,9 @@ import androidx.compose.ui.unit.dp
 import com.kitchino.app.employee.data.TrainingCardEntity
 
 @Composable
-fun TrainingScreen() {
-    val cards = remember {
+fun TrainingScreen(recipeId: Long) {
+
+    val cards = remember(recipeId) {
         listOf(
             TrainingCardEntity(1, 1, "Какой главный ингредиент в борще?", "Свекла", 1),
             TrainingCardEntity(2, 1, "Сколько варить говядину для борща?", "1.5 - 2 часа", 2),
