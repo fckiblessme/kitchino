@@ -77,19 +77,6 @@ class EmployeeRepository (
         return employee
     }
 
-    /** Записать действие в хеш-цепочку журнала (FR-14) */
-    suspend fun writeAudit(actorId: Long, action: String, payload: String) {
-        // Заглушка, так как AuditChain может быть не готов
-        auditLogDao.insertLog(
-            AuditLogEntity(
-                actorId = actorId,
-                action = action,
-                payload = payload,
-                prevHash = "test",
-                hash = "test"
-            )
-        )
-    }
 
     fun getEmployeeDao(): EmployeeDao = employeeDao
     fun getAuditLogDao(): AuditLogDao = auditLogDao
