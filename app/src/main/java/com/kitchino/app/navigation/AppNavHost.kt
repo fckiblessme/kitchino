@@ -1,19 +1,28 @@
 package com.kitchino.app.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.kitchino.app.auth.AuthViewModel
 import com.kitchino.app.data.AppDatabase
 import com.kitchino.app.dishbatch.ui.DishBatchScreen
 import com.kitchino.app.dishbatch.ui.DishBatchViewModel
+import com.kitchino.app.employee.EmployeeDependencies
 import com.kitchino.app.employee.domain.Action
+import com.kitchino.app.employee.ui.TrainingScreen
+import com.kitchino.app.employee.ui.audit.AuditScreen
+import com.kitchino.app.employee.ui.audit.AuditViewModel
+import com.kitchino.app.employee.ui.audit.AuditViewModelFactory
 import com.kitchino.app.ui.LoginScreen
 import com.kitchino.app.ui.MenuScreen
 import com.kitchino.app.ui.RegistrationScreen
@@ -34,9 +43,12 @@ fun AppNavHost(
     navController: NavHostController,
     dishBatchViewModel: DishBatchViewModel,
     warehouseDependencies: WarehouseDependencies,
+    employeeDependencies: EmployeeDependencies,
     onLogout: () -> Unit
 ) {
     val context = LocalContext.current
+    val database = remember { AppDatabase.getDatabase(context) }
+
     val authViewModel: AuthViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -46,6 +58,16 @@ fun AppNavHost(
             }
         }
     )
+
+    val authState by authViewModel.state.collectAsState()
+    LaunchedEffect(authState) {
+        val s = authState
+        if (s is AuthViewModel.State.LoggedIn) {
+            employeeDependencies.sessionManager.set(s.user)
+        } else {
+            employeeDependencies.sessionManager.clear()
+        }
+    }
 
     NavHost(
         navController = navController,
@@ -99,7 +121,7 @@ fun AppNavHost(
                             navController.navigate(Destination.IngredientsScreen.route)
                         Action.APPLICATION_DISCOUNT ->
                             navController.navigate(Destination.DishBatchScreen.route)
-                        Action.VIEW_AUDIT -> { /* TODO: экран аудита */ }
+                        Action.VIEW_AUDIT -> navController.navigate(Destination.AuditScreen.route)
                         Action.EMPLOYEE_MANAGEMENT -> { /* TODO: экран сотрудников */ }
                     }
                 },
@@ -145,8 +167,37 @@ fun AppNavHost(
                     )
                 )
                 val state by recipesVm.uiState.collectAsState()
-                RecipesScreen(uiState = state, makeDishViewModel = makeDishVm)
+                RecipesScreen(uiState = state, makeDishViewModel = makeDishVm,  onStartTraining = { recipeId ->
+                    navController.navigate(Destination.trainingRoute(recipeId))
+            }
+                )
+        }
+        }
+
+        composable(Destination.AuditScreen.route) {
+            SubScreen(title = "Журнал аудита", onBack = { navController.popBackStack() }) {
+                val auditVm: AuditViewModel = viewModel(
+                    factory = AuditViewModelFactory(
+                        auditLogDao = database.returnAuditLogDao(),
+                        employeeDao = database.returnEmployeeDao(),
+                        sessionManager = employeeDependencies.sessionManager,
+                        permissionChecker = employeeDependencies.permissionChecker
+                    )
+                )
+                val state by auditVm.uiState.collectAsState()
+                AuditScreen(uiState = state)
+            }
+        }
+
+        composable(
+            route = Destination.TRAINING_SCREEN_PATTERN,
+            arguments = listOf(navArgument(Destination.ARG_RECIPE_ID) { type = NavType.LongType })
+        ) { backStackEntry ->
+            val recipeId = backStackEntry.arguments?.getLong(Destination.ARG_RECIPE_ID) ?: 0L
+            SubScreen(title = "Обучение", onBack = { navController.popBackStack() }) {
+                TrainingScreen(recipeId = recipeId)
             }
         }
     }
 }
+
