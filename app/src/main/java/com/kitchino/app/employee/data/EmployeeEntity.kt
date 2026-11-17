@@ -10,6 +10,4 @@ class EmployeeEntity(
     val name: String,
     val role: Role,
     val pinHash: String
-
-
 )
