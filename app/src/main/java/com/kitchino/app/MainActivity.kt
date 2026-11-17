@@ -47,7 +47,7 @@ import com.kitchino.app.BuildConfig
 import com.kitchino.app.dishbatch.domain.DiscountDecisionProvider
 import com.kitchino.app.dishbatch.domain.VelocityDiscountDecision
 import com.kitchino.app.employee.data.EmployeeEntity
-import com.kitchino.app.employee.ui.EmployeeScreen
+
 
 class MainActivity : ComponentActivity() {
     private val database by lazy { AppDatabase.getDatabase(this) }
@@ -159,7 +159,7 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
 
-                            3 ->  EmployeeScreen(dependencies = com.kitchino.app.employee.EmployeeDependencies(database))
+
 
                         }
                     }
