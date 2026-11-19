@@ -6,34 +6,16 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.kitchino.app.employee.EmployeeDependencies
 import com.kitchino.app.data.AppDatabase
 import com.kitchino.app.dishbatch.data.DishBatchEntity
 import com.kitchino.app.dishbatch.data.Status
-import com.kitchino.app.dishbatch.ui.DishBatchScreen
 import com.kitchino.app.dishbatch.ui.DishBatchViewModel
 import com.kitchino.app.dishbatch.ui.DishBatchViewModelFactory
-import com.kitchino.app.ui.LoginScreen
 import com.kitchino.app.ui.theme.KitchinoTheme
 import com.kitchino.app.warehouse.WarehouseDependencies
 import com.kitchino.app.warehouse.data.entity.IngredientBatchEntity
@@ -41,19 +23,10 @@ import com.kitchino.app.warehouse.data.entity.IngredientEntity
 import com.kitchino.app.warehouse.data.entity.RecipeEntity
 import com.kitchino.app.warehouse.data.entity.RecipeIngredientEntity
 import com.kitchino.app.warehouse.domain.ConsumeIngredientsUseCase
-import com.kitchino.app.warehouse.ui.ingredients.IngredientsScreen
-import com.kitchino.app.warehouse.ui.ingredients.IngredientsViewModel
-import com.kitchino.app.warehouse.ui.ingredients.IngredientsViewModelFactory
-import com.kitchino.app.warehouse.ui.recipes.MakeDishViewModel
-import com.kitchino.app.warehouse.ui.recipes.MakeDishViewModelFactory
-import com.kitchino.app.warehouse.ui.recipes.RecipesScreen
-import com.kitchino.app.warehouse.ui.recipes.RecipesViewModel
-import com.kitchino.app.warehouse.ui.recipes.RecipesViewModelFactory
 import kotlinx.coroutines.launch
 import com.kitchino.app.BuildConfig
 import com.kitchino.app.auth.AuthViewModel
 import com.kitchino.app.dishbatch.domain.DiscountDecisionProvider
-import com.kitchino.app.dishbatch.domain.VelocityDiscountDecision
 import com.kitchino.app.employee.data.EmployeeEntity
 import com.kitchino.app.dishbatch.domain.ExpiryDiscountDecision
 import com.kitchino.app.employee.data.Role
@@ -79,11 +52,15 @@ class MainActivity : ComponentActivity() {
             database.returnSalesLogDao(),
             decisionProvider,
             employeeDependencies.auditApi,
-            employeeDependencies.employeeApi
+            employeeDependencies.employeeApi,
+            database.returnRecipeDao(),
+            database.returnEmployeeDao()
         )
     }
 
-    private val warehouseDependencies by lazy { WarehouseDependencies(database) }
+    private val warehouseDependencies by lazy {
+        WarehouseDependencies(database, employeeDependencies.employeeApi)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -104,15 +81,16 @@ class MainActivity : ComponentActivity() {
                 Log.d("Auth", "Создан менеджер admin/0000")
             }
 
-            // Тестовые данные
-            database.returnDishBatchDao().insertNewBatch(
-                DishBatchEntity(
-                    idDish = 1, idEmployee = 1, quantity = 5,
-                    madeAt = System.currentTimeMillis(),
-                    expiresAt = System.currentTimeMillis() + 1000 * 60 * 60,
-                    status = Status.ACTIVE
+            if (database.returnDishBatchDao().countBatches() == 0) {
+                database.returnDishBatchDao().insertNewBatch(
+                    DishBatchEntity(
+                        idDish = 1, idEmployee = 1, quantity = 5,
+                        madeAt = System.currentTimeMillis(),
+                        expiresAt = System.currentTimeMillis() + 1000 * 60 * 60,
+                        status = Status.ACTIVE
+                    )
                 )
-            )
+            }
 
             val ingredientDao = database.returnIngredientDao()
             val batchDao = database.returnIngredientBatchDao()
@@ -147,7 +125,7 @@ class MainActivity : ComponentActivity() {
                 ))
             }
 
-            val useCase = ConsumeIngredientsUseCase(database)
+            val useCase = ConsumeIngredientsUseCase(database, employeeDependencies.employeeApi)
             try {
                 useCase.execute(recipeId = 1, batchSize = 5)
             } catch (e: Exception) {
@@ -174,5 +152,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
-

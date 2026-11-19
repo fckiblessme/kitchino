@@ -82,6 +82,7 @@ abstract class AppDatabase  : RoomDatabase(){
     abstract fun returnSalesLogDao(): SalesLogDao
 
 
+
     companion object{
         private var instance: AppDatabase? = null
 

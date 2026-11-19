@@ -3,7 +3,10 @@ package com.kitchino.app.warehouse.domain
 import androidx.room.withTransaction
 import com.kitchino.app.core.contracts.ConsumeResult
 import com.kitchino.app.core.contracts.MissingIngredient
+import com.kitchino.app.core.contracts.EmployeeApi
 import com.kitchino.app.data.AppDatabase
+import com.kitchino.app.dishbatch.data.DishBatchEntity
+import com.kitchino.app.dishbatch.data.Status
 import com.kitchino.app.warehouse.data.entity.ConsumptionLogEntity
 import com.kitchino.app.warehouse.data.entity.RecipeIngredientEntity
 import kotlin.collections.isNotEmpty
@@ -11,8 +14,12 @@ import android.util.Log
 import com.kitchino.app.BuildConfig
 
 class ConsumeIngredientsUseCase(
-    private val database: AppDatabase
+    private val database: AppDatabase,
+    private val employeeApi: EmployeeApi
 ) {
+
+    // Срок жизни приготовленного блюда (2 часа) — вынесен в константу, чтобы легко менять
+    private val dishShelfLifeMs: Long = 2 * 60 * 60 * 1000L
 
     suspend fun execute(recipeId: Long, batchSize: Int): ConsumeResult {
         // Проверка количества порций
@@ -42,6 +49,7 @@ class ConsumeIngredientsUseCase(
 
         // Списание ингредиентов
         val now = System.currentTimeMillis()
+        val employeeId = employeeApi.getCurrentEmployeeId()
         database.withTransaction {
             for (component in composition) {
                 // Вычисление размера списания
@@ -60,6 +68,18 @@ class ConsumeIngredientsUseCase(
                     )
                 )
             }
+
+            // Создание партии готовых блюд — именно она попадает на экран DishBatchScreen
+            database.returnDishBatchDao().insertNewBatch(
+                DishBatchEntity(
+                    idDish = recipeId, // в текущей схеме idDish = id рецепта
+                    idEmployee = employeeId,
+                    quantity = batchSize,
+                    madeAt = now,
+                    expiresAt = now + dishShelfLifeMs,
+                    status = Status.ACTIVE
+                )
+            )
         }
 
         return ConsumeResult.Success

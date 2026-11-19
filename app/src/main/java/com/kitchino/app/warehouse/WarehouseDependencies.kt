@@ -1,5 +1,6 @@
 package com.kitchino.app.warehouse
 
+import com.kitchino.app.core.contracts.EmployeeApi
 import com.kitchino.app.data.AppDatabase
 import com.kitchino.app.warehouse.data.repository.WarehouseRepository
 import com.kitchino.app.warehouse.domain.ConsumeIngredientsUseCase
@@ -7,7 +8,10 @@ import com.kitchino.app.warehouse.domain.ForecastUseCase
 import com.kitchino.app.warehouse.domain.WarehouseApiImpl
 
 
-class WarehouseDependencies(database: AppDatabase) {
+class WarehouseDependencies(
+    database: AppDatabase,
+    employeeApi: EmployeeApi
+) {
     // DAO склада
     val repository: WarehouseRepository = WarehouseRepository(
         ingredientDao = database.returnIngredientDao(),
@@ -17,7 +21,7 @@ class WarehouseDependencies(database: AppDatabase) {
     )
 
     val consumeIngredientsUseCase: ConsumeIngredientsUseCase =
-        ConsumeIngredientsUseCase(database)
+        ConsumeIngredientsUseCase(database, employeeApi)
 
     // Прогноз по ингредиентам
     val forecastUseCase: ForecastUseCase =

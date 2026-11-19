@@ -11,6 +11,9 @@ interface DishBatchDao {
     @Query("SELECT * FROM dish_batch WHERE status = 'ACTIVE' ORDER BY expiresAt ASC")
     fun getAllBatches(): Flow<List<DishBatchEntity>>
 
+    @Query("SELECT COUNT(*) FROM dish_batch")
+    suspend fun countBatches(): Int
+
     @Insert
     suspend fun insertNewBatch(batch: DishBatchEntity): Long
 
