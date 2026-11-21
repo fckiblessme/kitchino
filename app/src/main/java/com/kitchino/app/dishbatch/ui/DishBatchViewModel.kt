@@ -15,6 +15,7 @@ import com.kitchino.app.dishbatch.data.SalesLogEntity
 import com.kitchino.app.dishbatch.data.Status
 import com.kitchino.app.dishbatch.domain.DiscountDecision
 import com.kitchino.app.dishbatch.domain.DiscountDecisionProvider
+import com.kitchino.app.dishbatch.domain.HysteresisDiscountDecision
 import com.kitchino.app.dishbatch.domain.SalesVelocity
 import com.kitchino.app.dishbatch.domain.VelocityDiscountDecision
 import com.kitchino.app.employee.data.EmployeeDao
@@ -30,6 +31,12 @@ data class BatchUI (
     val discountDecision: DiscountDecision,
     val dishName: String,
     val employeeName: String
+)
+
+private fun DiscountDecisionEntity.toDomainDecision() = DiscountDecision(
+    decisionType = decisionType,
+    discountPercent = discountPercent,
+    discountReason = reason.orEmpty()
 )
 
 class DishBatchViewModel(
@@ -55,11 +62,17 @@ class DishBatchViewModel(
                 val velocity = SalesVelocity.calculatePortionsPerHour(
                     sold, earliestSale, now, SalesVelocity.OBSERVATION_WINDOW_MILLIS
                 )
+                // Цепочка решений: базовая политика -> усиление по темпу -> гистерезис.
                 // Темп собирается здесь из журнала — точка сборки для VelocityDiscountDecision;
                 // инжектируемый provider остаётся базовой политикой, при отсутствии продаж
-                // декоратор возвращает его решение без изменений
-                val decision = VelocityDiscountDecision(velocity, base = decisionProvider)
-                    .recommendAction(batch, now)
+                // декоратор возвращает его решение без изменений.
+                // Гистерезис держит последнее решение по партии: свежий расчёт может
+                // колебаться на границе порога, а ослаблять применённую скидку нельзя
+                val previous = decisionDao.getLatestDecisionByBatch(batch.idDishBatch)?.toDomainDecision()
+                val decision = HysteresisDiscountDecision(
+                    previous,
+                    VelocityDiscountDecision(velocity, base = decisionProvider)
+                ).recommendAction(batch, now)
                 BatchUI(
                     dishBatchEntity = batch,
                     discountDecision = decision,

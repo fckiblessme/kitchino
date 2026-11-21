@@ -99,4 +99,22 @@ class DiscountDecisionVelocityTest {
         val secondInput = decision(300, 10, 5.0)
         assertEquals(firstInput, secondInput)
     }
+
+    // ---------- Дребезг на границе усиления ----------
+    // Воспроизведение: темп продаж колеблется вокруг границы «успевает продаться»
+    // (старые продажи выходят из окна наблюдения, новые продажи входят), и для одной
+    // и той же партии рекомендация скачет туда-сюда: 20% - без скидки - 20% ...
+    // Фикс — HysteresisDiscountDecision: решение по партии не ослабляется
+    @Test
+    fun velocityNoiseAroundBoundary_flapsBetweenNoActionAndDiscount() {
+        val flapping = listOf(19.9, 20.1, 19.9, 20.1)
+        val types = flapping.map { decision(1_800_000L, 10, it).decisionType }
+        assertEquals(
+            listOf(
+                DecisionType.DISCOUNT, DecisionType.NO_ACTION,
+                DecisionType.DISCOUNT, DecisionType.NO_ACTION
+            ),
+            types
+        )
+    }
 }
