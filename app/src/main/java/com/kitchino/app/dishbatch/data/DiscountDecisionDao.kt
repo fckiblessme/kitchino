@@ -12,4 +12,8 @@ interface DiscountDecisionDao {
     @Query("SELECT * FROM discount_decision WHERE idBatch = :batchId ORDER BY decidedAt ASC")
     suspend fun getDecisionByBatch(batchId: Long) :List<DiscountDecisionEntity>
 
+    // Последнее решение по партии — предыдущее состояние для гистерезиса
+    @Query("SELECT * FROM discount_decision WHERE idBatch = :batchId ORDER BY decidedAt DESC LIMIT 1")
+    suspend fun getLatestDecisionByBatch(batchId: Long) : DiscountDecisionEntity?
+
 }
