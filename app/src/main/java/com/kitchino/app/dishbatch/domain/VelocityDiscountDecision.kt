@@ -3,9 +3,6 @@ package com.kitchino.app.dishbatch.domain
 import com.kitchino.app.dishbatch.data.DecisionType
 import com.kitchino.app.dishbatch.data.DishBatchEntity
 
-// Реализация 2: решение по сроку годности с усилением на темп продаж.
-// Скорость передаётся через конструктор (точка сборки), контракт тот же,
-// что у ExpiryDiscountDecision — потребитель не различает реализации.
 class VelocityDiscountDecision(
     private val portionsPerHour: Double?,
     private val base: DiscountDecisionProvider = ExpiryDiscountDecision()
@@ -21,8 +18,6 @@ class VelocityDiscountDecision(
 
         val hoursUntilExpiry = (dishBatchEntity.expiresAt - currentTime) / 3_600_000.0
 
-        // Скорость только усиливает скидку, но не ослабляет.
-        // Усиление, если по текущему темпу партия не успевает продаться до истечения срока.
         return if (hoursToSellOut > hoursUntilExpiry) {
             when (baseDecision.decisionType) {
                 DecisionType.NO_ACTION ->

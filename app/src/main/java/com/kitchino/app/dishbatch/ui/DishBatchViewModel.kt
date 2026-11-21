@@ -15,6 +15,8 @@ import com.kitchino.app.dishbatch.data.SalesLogEntity
 import com.kitchino.app.dishbatch.data.Status
 import com.kitchino.app.dishbatch.domain.DiscountDecision
 import com.kitchino.app.dishbatch.domain.DiscountDecisionProvider
+import com.kitchino.app.dishbatch.domain.SalesVelocity
+import com.kitchino.app.dishbatch.domain.VelocityDiscountDecision
 import com.kitchino.app.employee.data.EmployeeDao
 import com.kitchino.app.warehouse.data.dao.RecipeDao
 import kotlinx.coroutines.flow.SharingStarted
@@ -44,12 +46,23 @@ class DishBatchViewModel(
     val activeBatchesWithDecisions: StateFlow<List<BatchUI>> = batchDao.getAllBatches()
         .map { batches ->
             val now = System.currentTimeMillis()
+            val windowStart = now - SalesVelocity.OBSERVATION_WINDOW_MILLIS.toLong()
             batches.map { batch ->
                 val dish = recipeDao.getRecipeById(batch.idDish)
                 val employee = employeeDao.findById(batch.idEmployee)
+                val sold = salesLogDao.getSoldQuantitySince(batch.idDish, windowStart)
+                val earliestSale = salesLogDao.getEarliestSale(batch.idDish, windowStart)
+                val velocity = SalesVelocity.calculatePortionsPerHour(
+                    sold, earliestSale, now, SalesVelocity.OBSERVATION_WINDOW_MILLIS
+                )
+                // Темп собирается здесь из журнала — точка сборки для VelocityDiscountDecision;
+                // инжектируемый provider остаётся базовой политикой, при отсутствии продаж
+                // декоратор возвращает его решение без изменений
+                val decision = VelocityDiscountDecision(velocity, base = decisionProvider)
+                    .recommendAction(batch, now)
                 BatchUI(
                     dishBatchEntity = batch,
-                    discountDecision = decisionProvider.recommendAction(batch, now),
+                    discountDecision = decision,
                     dishName = dish?.dishName ?: "Блюдо #${batch.idDish}",
                     employeeName = employee?.name ?: "Сотрудник #${batch.idEmployee}"
                 )

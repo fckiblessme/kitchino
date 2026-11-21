@@ -301,7 +301,7 @@ private fun SwipeableBatchCard(
                         scope.launch {
                             snackbarHostState.showSnackbar("По этой партии скидка не рекомендована")
                         }
-                        false // карточка возвращается на место
+                        false
                     } else {
                         scope.launch { snackbarHostState.showSnackbar(decisionMessage(item)) }
                         onApply(item)
@@ -393,7 +393,6 @@ private fun DishBatchCard(
         DecisionType.WRITE_OFF -> LightOrange to "Списание"
     }
     val remaining = item.dishBatchEntity.expiresAt - nowMillis
-    // Срочная партия — красная рамка
     val isUrgent = remaining in 1..UrgentThresholdMs
 
     Card(

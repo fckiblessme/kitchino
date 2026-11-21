@@ -87,6 +87,33 @@ class SalesVelocityTest {
         assertNull(SalesVelocity.calculatePortionsPerHour(5, null, NOW))
     }
 
+    // ---------- Окно наблюдения ----------
+    @Test
+    fun salesBeforeWindow_doNotInflateRate() {
+        // продажи шли и до окна: 3 продажи в окне при самой ранней 2 часа назад
+        // дают темп 3 за окно, а не 3 за 2 часа
+        val velocity = SalesVelocity.calculatePortionsPerHour(
+            3, NOW - 2 * HOUR, NOW, (12 * HOUR).toDouble()
+        )
+        assertEquals(0.25, velocity!!, 0.0)
+    }
+
+    @Test
+    fun observationShorterThanWindow_isFlooredToWindow() {
+        val velocity = SalesVelocity.calculatePortionsPerHour(
+            24, NOW - 6 * HOUR, NOW, (12 * HOUR).toDouble()
+        )
+        assertEquals(2.0, velocity!!, 0.0)
+    }
+
+    @Test
+    fun observationLongerThanWindow_isNotShortened() {
+        val velocity = SalesVelocity.calculatePortionsPerHour(
+            24, NOW - 6 * HOUR, NOW, (2 * HOUR).toDouble()
+        )
+        assertEquals(4.0, velocity!!, 0.0)
+    }
+
     // ---------- calculateHoursToSellOut ----------
     @Test
     fun sellOut_computesHours() {
