@@ -6,7 +6,7 @@ class PermissionChecker {
     fun can(role: Role, action: Action): Boolean {
 
         if (action == Action.MAKE_DISH) {
-            return role == Role.COOK
+            return role == Role.COOK || role == Role.MANAGER
         }
 
         if (action == Action.WRITE_OFF_PRODUCTS) {
