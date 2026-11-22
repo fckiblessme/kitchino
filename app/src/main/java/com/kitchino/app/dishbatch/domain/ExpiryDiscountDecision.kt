@@ -3,8 +3,6 @@ package com.kitchino.app.dishbatch.domain
 import com.kitchino.app.dishbatch.data.DecisionType
 import com.kitchino.app.dishbatch.data.DishBatchEntity
 
-// Реализация 1: решение только по доле остатка срока годности (FR-08).
-// Не учитывает темп продаж.
 class ExpiryDiscountDecision : DiscountDecisionProvider {
 
     private val writeoffThreshold = 0.05

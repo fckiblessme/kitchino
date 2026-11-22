@@ -50,7 +50,7 @@ class DishBatchViewModel(
     private val employeeDao: EmployeeDao
 ) : ViewModel() {
 
-    val activeBatchesWithDecisions: StateFlow<List<BatchUI>> = batchDao.getAllBatches()
+    val activeBatchesWithDecisions: StateFlow<List<BatchUI>> = batchDao.getLiveBatches()
         .map { batches ->
             val now = System.currentTimeMillis()
             val windowStart = now - SalesVelocity.OBSERVATION_WINDOW_MILLIS.toLong()
@@ -62,12 +62,6 @@ class DishBatchViewModel(
                 val velocity = SalesVelocity.calculatePortionsPerHour(
                     sold, earliestSale, now, SalesVelocity.OBSERVATION_WINDOW_MILLIS
                 )
-                // Цепочка решений: базовая политика -> усиление по темпу -> гистерезис.
-                // Темп собирается здесь из журнала — точка сборки для VelocityDiscountDecision;
-                // инжектируемый provider остаётся базовой политикой, при отсутствии продаж
-                // декоратор возвращает его решение без изменений.
-                // Гистерезис держит последнее решение по партии: свежий расчёт может
-                // колебаться на границе порога, а ослаблять применённую скидку нельзя
                 val previous = decisionDao.getLatestDecisionByBatch(batch.idDishBatch)?.toDomainDecision()
                 val decision = HysteresisDiscountDecision(
                     previous,
@@ -84,12 +78,14 @@ class DishBatchViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun applyDecision(item: BatchUI) = viewModelScope.launch {
+        val empId = employeeApi.getCurrentEmployeeId()
+        val author = employeeDao.findById(empId)?.name ?: "Сотрудник #$empId"
         decisionDao.insertNewDecision(
             DiscountDecisionEntity(
                 0, item.dishBatchEntity.idDishBatch,
                 item.discountDecision.decisionType,
                 item.discountDecision.discountPercent,
-                System.currentTimeMillis(), "System",
+                System.currentTimeMillis(), author,
                 item.discountDecision.discountReason
             )
         )
@@ -101,7 +97,6 @@ class DishBatchViewModel(
             DecisionType.NO_ACTION -> {}
         }
 
-        val empId = employeeApi.getCurrentEmployeeId()
         auditApi.logAction(
             actorId = empId,
             action = item.discountDecision.decisionType.name,
@@ -110,16 +105,17 @@ class DishBatchViewModel(
     }
 
     fun writeOffBatch(item: BatchUI) = viewModelScope.launch {
+        val empId = employeeApi.getCurrentEmployeeId()
+        val author = employeeDao.findById(empId)?.name ?: "Сотрудник #$empId"
         decisionDao.insertNewDecision(
             DiscountDecisionEntity(
                 0, item.dishBatchEntity.idDishBatch,
                 DecisionType.WRITE_OFF, null,
-                System.currentTimeMillis(), "System",
+                System.currentTimeMillis(), author,
                 "Списано вручную (свайп)"
             )
         )
         batchDao.updateExistingBatch(item.dishBatchEntity.copy(status = Status.WRITTEN_OFF))
-        val empId = employeeApi.getCurrentEmployeeId()
         auditApi.logAction(
             actorId = empId,
             action = DecisionType.WRITE_OFF.name,

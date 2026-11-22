@@ -8,8 +8,8 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface DishBatchDao {
-    @Query("SELECT * FROM dish_batch WHERE status = 'ACTIVE' ORDER BY expiresAt ASC")
-    fun getAllBatches(): Flow<List<DishBatchEntity>>
+    @Query("SELECT * FROM dish_batch WHERE status IN ('ACTIVE', 'WITH_SALE') ORDER BY expiresAt ASC")
+    fun getLiveBatches(): Flow<List<DishBatchEntity>>
 
     @Query("SELECT COUNT(*) FROM dish_batch")
     suspend fun countBatches(): Int
