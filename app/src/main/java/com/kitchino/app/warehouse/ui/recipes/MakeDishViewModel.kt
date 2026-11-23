@@ -10,14 +10,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-
 data class MakeDishUiState(
     val selectedRecipeId: Long? = null,
     val batchSize: Int = 1,
     val isSubmitting: Boolean = false,
     val result: ConsumeResult? = null
 )
-
 
 class MakeDishViewModel(
     private val warehouseApi: WarehouseApi
@@ -31,22 +29,27 @@ class MakeDishViewModel(
     }
 
     fun setBatchSize(size: Int) {
-        val safeSize = if (size < 1) 1 else size
-        _uiState.value = _uiState.value.copy(batchSize = safeSize, result = null)
+        _uiState.value = _uiState.value.copy(batchSize = size, result = null)
     }
 
     fun clearResult() {
         _uiState.value = _uiState.value.copy(result = null)
     }
 
-    fun makeDish() {
+    fun reset() {
+        _uiState.value = MakeDishUiState()
+    }
+
+    fun makeDish(onSuccess: (ConsumeResult) -> Unit) {
         val recipeId = _uiState.value.selectedRecipeId ?: return
         val batchSize = _uiState.value.batchSize
+        if (batchSize < 1) return
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isSubmitting = true, result = null)
             val result = warehouseApi.consumeIngredients(recipeId, batchSize)
             _uiState.value = _uiState.value.copy(isSubmitting = false, result = result)
+            onSuccess(result)
         }
     }
 }
