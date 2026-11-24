@@ -107,7 +107,6 @@ fun AppNavHost(
             )
         }
 
-
         composable(Destination.MenuScreen.route) {
             MenuScreen(
                 viewModel = authViewModel,
@@ -122,7 +121,7 @@ fun AppNavHost(
                         Action.APPLICATION_DISCOUNT ->
                             navController.navigate(Destination.DishBatchScreen.route)
                         Action.VIEW_AUDIT -> navController.navigate(Destination.AuditScreen.route)
-                        Action.EMPLOYEE_MANAGEMENT -> { /* TODO: экран сотрудников */ }
+                        Action.EMPLOYEE_MANAGEMENT -> { /* TODO */ }
                     }
                 },
                 onLogout = {
@@ -150,7 +149,7 @@ fun AppNavHost(
                     )
                 )
                 val state by vm.uiState.collectAsState()
-                IngredientsScreen(uiState = state)
+                IngredientsScreen(uiState = state, viewModel = vm)
             }
         }
 
@@ -167,12 +166,19 @@ fun AppNavHost(
                     )
                 )
                 val state by recipesVm.uiState.collectAsState()
-                RecipesScreen(uiState = state, makeDishViewModel = makeDishVm,  onStartTraining = { recipeId ->
-                    navController.navigate(Destination.trainingRoute(recipeId))
-            }
+                RecipesScreen(
+                    uiState = state,
+                    makeDishViewModel = makeDishVm,
+                    onStartTraining = { recipeId ->
+                        navController.navigate(Destination.trainingRoute(recipeId))
+                    },
+                    onApplyFilter = { filter ->
+                        recipesVm.applyFilter(filter)
+                    }
                 )
+            }
         }
-        }
+
 
         composable(Destination.AuditScreen.route) {
             SubScreen(title = "Журнал аудита", onBack = { navController.popBackStack() }) {
@@ -200,4 +206,3 @@ fun AppNavHost(
         }
     }
 }
-

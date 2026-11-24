@@ -63,10 +63,19 @@ val MIGRATION_2_3 = object : Migration(2, 3){
     }
 }
 
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `recipe` ADD COLUMN `isReadyMade` INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE `recipe` ADD COLUMN `category` TEXT NOT NULL DEFAULT ''")
+        db.execSQL("ALTER TABLE `recipe` ADD COLUMN `cookingTechnology` TEXT NOT NULL DEFAULT ''")
+        db.execSQL("ALTER TABLE `ingredient` ADD COLUMN `category` TEXT NOT NULL DEFAULT ''")
+        db.execSQL("ALTER TABLE `ingredient` ADD COLUMN `subcategory` TEXT NOT NULL DEFAULT ''")
+    }
+}
 @Database(entities = [DishBatchEntity::class, DiscountDecisionEntity::class,
     IngredientEntity::class, IngredientBatchEntity::class, RecipeEntity::class,
     RecipeIngredientEntity::class,ConsumptionLogEntity::class, AuditLogEntity::class,
-    EmployeeEntity::class, TrainingCardEntity::class, TrainingProgressEntity::class, SalesLogEntity::class], version = 3)
+    EmployeeEntity::class, TrainingCardEntity::class, TrainingProgressEntity::class, SalesLogEntity::class], version = 4)
 @TypeConverters(Converters::class)
 abstract class AppDatabase  : RoomDatabase(){
     abstract fun returnDishBatchDao() : DishBatchDao
@@ -93,7 +102,7 @@ abstract class AppDatabase  : RoomDatabase(){
                         context,
                         AppDatabase::class.java,
                         "app_database"
-                    ).addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                         .fallbackToDestructiveMigration()
                         .addCallback(object : RoomDatabase.Callback() {
                             override fun onCreate(db: SupportSQLiteDatabase) {
