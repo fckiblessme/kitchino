@@ -15,7 +15,8 @@ import com.kitchino.app.BuildConfig
 
 class ConsumeIngredientsUseCase(
     private val database: AppDatabase,
-    private val employeeApi: EmployeeApi
+    private val employeeApi: EmployeeApi,
+    private val reportWriter: ConsumptionReportWriter? = null
 ) {
 
     // Срок жизни приготовленного блюда (2 часа) — вынесен в константу, чтобы легко менять
@@ -38,7 +39,7 @@ class ConsumeIngredientsUseCase(
         val composition = database.returnRecipeDao().getRecipeComposition(recipeId)
         if (composition.isEmpty()) {
             // Рецепт без состава
-            return ConsumeResult.Success
+            return ConsumeResult.Success()
         }
 
         // Проверка хватает ли ингредиентов
@@ -82,7 +83,24 @@ class ConsumeIngredientsUseCase(
             )
         }
 
-        return ConsumeResult.Success
+        var reportPath: String? = null
+        var reportError: String? = null
+        val writer = reportWriter
+        if (writer != null) {
+            val rows = composition.map { component ->
+                ReportRow(
+                    ingredient = component.idIngredient.toString(),
+                    amount = component.amountPerUnit * batchSize,
+                    timestamp = now
+                )
+            }
+            when (val reportResult = writer.write(rows)) {
+                is ReportWriteResult.Ok -> reportPath = reportResult.path
+                is ReportWriteResult.Error -> reportError = reportResult.message
+            }
+        }
+
+        return ConsumeResult.Success(reportPath = reportPath, reportError = reportError)
     }
 
     // Проверка чего и сколько не хватает для списания

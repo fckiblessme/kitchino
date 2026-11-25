@@ -26,7 +26,7 @@ class FakeWarehouseApiTest {
     @Test
     fun normalCase_enoughStock_returnsSuccess() = runBlocking {
         val result = api().consumeIngredients(recipeId = 1, batchSize = 1)
-        assertEquals(ConsumeResult.Success, result)
+        assertEquals(ConsumeResult.Success(), result)
     }
 
     // Граничный случай: запас ровно равен требуемому количеству
@@ -34,7 +34,7 @@ class FakeWarehouseApiTest {
     fun boundaryCase_stockExactlyEqualsRequired_returnsSuccess() = runBlocking {
         // 5 порций: картофель 200*5=1000 (есть 1000), говядина 150*5=750 (есть 750)
         val result = api().consumeIngredients(recipeId = 1, batchSize = 5)
-        assertEquals(ConsumeResult.Success, result)
+        assertEquals(ConsumeResult.Success(), result)
     }
 
     // Ошибочный случай: рецепт не найден
