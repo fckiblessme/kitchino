@@ -48,7 +48,7 @@ class FakeWarehouseApi(
                 )
             }
         }
-        return if (missing.isEmpty()) ConsumeResult.Success
+        return if (missing.isEmpty()) ConsumeResult.Success()
         else ConsumeResult.InsufficientStock(missing)
     }
 
