@@ -125,4 +125,7 @@ class WarehouseRepository(
     ): List<DailyConsumption> {
         return consumptionLogDao.getDailyConsumptionSince(ingredientId, sinceMillis)
     }
+    suspend fun getFirstConsumptionDay(ingredientId: Long): Long? {
+        return consumptionLogDao.getFirstConsumptionDay(ingredientId)
+    }
 }

@@ -38,9 +38,8 @@ class ForecastUseCase(
         val since = System.currentTimeMillis() - HISTORY_WINDOW_DAYS * MILLIS_PER_DAY
         val daily = repository.getDailyConsumptionSince(ingredientId, since)
 
-        // От первого списания по ингредиенту до сегодня, не более 30 дней и не менее одного
-        val firstConsumptionDay =
-            repository.getDailyConsumption(ingredientId).firstOrNull()?.dayStartMillis
+
+        val firstConsumptionDay = repository.getFirstConsumptionDay(ingredientId)
         val observationDays = if (firstConsumptionDay == null) {
             0
         } else {

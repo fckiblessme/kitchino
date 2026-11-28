@@ -49,4 +49,11 @@ interface ConsumptionLogDao {
         ingredientId: Long,
         sinceMillis: Long
     ): List<DailyConsumption>
+
+    @Query("""
+        select MIN((timestamp / 86400000) * 86400000)
+        from consumption_log
+        where idIngredient = :ingredientId
+    """)
+    suspend fun getFirstConsumptionDay(ingredientId: Long): Long?
 }
