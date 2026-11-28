@@ -3,11 +3,9 @@ package com.kitchino.app.dishbatch.domain
 import com.kitchino.app.dishbatch.data.DecisionType
 import com.kitchino.app.dishbatch.data.DishBatchEntity
 
-class ExpiryDiscountDecision : DiscountDecisionProvider {
-
-    private val writeoffThreshold = 0.05
-    private val heavyDiscountThreshold = 0.20
-    private val lightDiscountThreshold = 0.50
+class ExpiryDiscountDecision(
+    private val thresholds: DiscountThresholds = DiscountThresholds.DEFAULT
+) : DiscountDecisionProvider {
 
     override fun recommendAction(dishBatchEntity: DishBatchEntity, currentTime: Long): DiscountDecision {
         val liveTimeDishBatch = dishBatchEntity.expiresAt - dishBatchEntity.madeAt
@@ -22,12 +20,21 @@ class ExpiryDiscountDecision : DiscountDecisionProvider {
         return when {
             partOfRemainingTime <= 0.0 ->
                 DiscountDecision(DecisionType.WRITE_OFF, null, "Срок истек")
-            partOfRemainingTime < writeoffThreshold ->
-                DiscountDecision(DecisionType.WRITE_OFF, null, "Менее 5% от срока жизни блюда")
-            partOfRemainingTime < heavyDiscountThreshold ->
-                DiscountDecision(DecisionType.DISCOUNT, 50.0, "Менее 20% от срока жизни блюда")
-            partOfRemainingTime < lightDiscountThreshold ->
-                DiscountDecision(DecisionType.DISCOUNT, 20.0, "Менее 50% от срока жизни блюда")
+            partOfRemainingTime < thresholds.writeoff ->
+                DiscountDecision(
+                    DecisionType.WRITE_OFF, null,
+                    "Менее ${thresholds.writeoffPercentText()}% от срока жизни блюда"
+                )
+            partOfRemainingTime < thresholds.heavy ->
+                DiscountDecision(
+                    DecisionType.DISCOUNT, 50.0,
+                    "Менее ${thresholds.heavyPercentText()}% от срока жизни блюда"
+                )
+            partOfRemainingTime < thresholds.light ->
+                DiscountDecision(
+                    DecisionType.DISCOUNT, 20.0,
+                    "Менее ${thresholds.lightPercentText()}% от срока жизни блюда"
+                )
             else ->
                 DiscountDecision(DecisionType.NO_ACTION, null, "Срок годности еще не подходит к концу")
         }

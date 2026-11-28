@@ -3,6 +3,8 @@ package com.kitchino.app.dishbatch.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.kitchino.app.audit.AuditEvent
+import com.kitchino.app.audit.AuditEventSender
 import com.kitchino.app.core.contracts.AuditApi
 import com.kitchino.app.core.contracts.EmployeeApi
 import com.kitchino.app.dishbatch.data.DecisionType
@@ -47,7 +49,8 @@ class DishBatchViewModel(
     private val auditApi: AuditApi,
     private val employeeApi: EmployeeApi,
     private val recipeDao: RecipeDao,
-    private val employeeDao: EmployeeDao
+    private val employeeDao: EmployeeDao,
+    private val auditEventSender: AuditEventSender
 ) : ViewModel() {
 
     val activeBatchesWithDecisions: StateFlow<List<BatchUI>> = batchDao.getLiveBatches()
@@ -102,6 +105,17 @@ class DishBatchViewModel(
             action = item.discountDecision.decisionType.name,
             payload = "batch=${item.dishBatchEntity.idDishBatch} reason=${item.discountDecision.discountReason}"
         )
+
+        auditEventSender.send(
+            listOf(
+                AuditEvent(
+                    batchId = item.dishBatchEntity.idDishBatch,
+                    action = item.discountDecision.decisionType.name,
+                    discountPercent = item.discountDecision.discountPercent,
+                    reason = item.discountDecision.discountReason
+                )
+            )
+        )
     }
 
     fun writeOffBatch(item: BatchUI) = viewModelScope.launch {
@@ -120,6 +134,16 @@ class DishBatchViewModel(
             actorId = empId,
             action = DecisionType.WRITE_OFF.name,
             payload = "batch=${item.dishBatchEntity.idDishBatch} reason=manual_swipe"
+        )
+        auditEventSender.send(
+            listOf(
+                AuditEvent(
+                    batchId = item.dishBatchEntity.idDishBatch,
+                    action = DecisionType.WRITE_OFF.name,
+                    discountPercent = null,
+                    reason = "Списано вручную (свайп)"
+                )
+            )
         )
     }
 
@@ -151,13 +175,14 @@ class DishBatchViewModelFactory(
     private val auditApi: AuditApi,
     private val employeeApi: EmployeeApi,
     private val recipeDao: RecipeDao,
-    private val employeeDao: EmployeeDao
+    private val employeeDao: EmployeeDao,
+    private val auditEventSender: AuditEventSender
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         @Suppress("UNCHECKED_CAST")
         return DishBatchViewModel(
             batchDao, decisionDao, salesLogDao, decisionProvider, auditApi, employeeApi,
-            recipeDao, employeeDao
+            recipeDao, employeeDao, auditEventSender
         ) as T
     }
 }

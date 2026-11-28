@@ -22,6 +22,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Принимающая сторона обмена ПР №3 (Р2): отдельный процесс :auditd -->
+        <service
+            android:name=".audit.AuditLogService"
+            android:exported="false"
+            android:process=":auditd" />
     </application>
 
 </manifest>

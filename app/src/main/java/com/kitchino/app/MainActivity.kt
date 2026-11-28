@@ -2,6 +2,7 @@ package com.kitchino.app
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -26,11 +27,14 @@ import com.kitchino.app.warehouse.domain.ConsumeIngredientsUseCase
 import kotlinx.coroutines.launch
 import com.kitchino.app.BuildConfig
 import com.kitchino.app.auth.AuthViewModel
+import com.kitchino.app.dishbatch.data.DiscountConfigFileSource
 import com.kitchino.app.dishbatch.domain.DiscountDecisionProvider
 import com.kitchino.app.employee.data.EmployeeEntity
 import com.kitchino.app.dishbatch.domain.ExpiryDiscountDecision
 import com.kitchino.app.employee.data.Role
 import com.kitchino.app.navigation.AppNavHost
+import com.kitchino.app.audit.AuditEventSender
+import java.io.File
 
 
 class MainActivity : ComponentActivity() {
@@ -45,7 +49,11 @@ class MainActivity : ComponentActivity() {
     }
 
     private val dishBatchViewModel: DishBatchViewModel by viewModels {
-        val decisionProvider: DiscountDecisionProvider = ExpiryDiscountDecision()
+        val config = DiscountConfigFileSource(File(filesDir, "discounts.conf")).load()
+        if (config.warning != null) {
+            Toast.makeText(applicationContext, config.warning, Toast.LENGTH_LONG).show()
+        }
+        val decisionProvider: DiscountDecisionProvider = ExpiryDiscountDecision(config.thresholds)
         DishBatchViewModelFactory(
             database.returnDishBatchDao(),
             database.returnDiscountDecisionDao(),
@@ -54,7 +62,8 @@ class MainActivity : ComponentActivity() {
             employeeDependencies.auditApi,
             employeeDependencies.employeeApi,
             database.returnRecipeDao(),
-            database.returnEmployeeDao()
+            database.returnEmployeeDao(),
+            AuditEventSender(applicationContext)
         )
     }
 
